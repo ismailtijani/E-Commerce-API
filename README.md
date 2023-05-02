@@ -1,8 +1,8 @@
-# Project Name: Kimbali
+# Project Name: E-Commerce API
 
 ## Description
 
-This is an app that help access the most basic financial services like transfers, savings, payments, loans and thus enabling seamless banking experience
+
 
 ---
 
@@ -45,43 +45,11 @@ If the issue persist, kindly contact `Ismail => @ ismailtijani10@yahoo.com`
 
 - [x] The application is responsible for creating new Admin and User
 - [x] Customer cannot create another user account
-- [x] User can upload a profile picture
-- [x] User can fund thier wallet
-- [x] User can view avalaible balance
-- [x] User can make withdrawal
-- [x] User cannot make withdrawal more than his/her balance
-- [x] User can transfer funds to existing user only
-- [x] Transaction status i.e "Success" or "Failed"
-- [x] User cannot transfer negative amount
-- [x] User cannot transfer to himself/herself
-- [x] User is charged a certain fee for all transfers
-- [x] User cannot transfer more than his/her balance (insufficient balance)
-- [x] User can view transaction history
-- [x] User can view transaction detatils
-- [x] User can view total amount credited and debited
-
----
-
-- [x] Added joi validation - fail fast principle
-- [x] Data cleaning and validation to avoid foreign and illlegitimate inputs
-- [x] Transaction history with pagination
-- [x] Handle `unhandled` exceptions and rejections
-- [x] Implement transaction limit
-- [x] Handled scenarios where the user's bank account is compromised or hacked, and implementing appropriate security measures such as user authentication, password resets, and account recovery processes.
+- [x] 
 
 ---
 
 ### TODO
-
-- [x] Redis cache for user profile AND STATISTICS
-- [x] Cash back on all withdrawals
-- [x] Add premium users
-- [x] Overdraft limit for general user and premium users
-- [x] Implementing two-factor authentication for secure transactions
-- [x] Implementing a transaction timeout to prevent unauthorized access or fraud
-- [x] Handling failed transactions and providing appropriate error messages to users
-- [x] Handling large transactions or transfers that may require additional verification or approval from the bank
-- [x]Implementing account freeze or suspen sion for suspicious account activity by administrators [rbac ]
 
 ---
 
@@ -97,7 +65,7 @@ If the issue persist, kindly contact `Ismail => @ ismailtijani10@yahoo.com`
     "name": "SOT",
     "email": "user@mail.com"
     "phoneNumber": "08094706335",
-    "password": "kimbali123"
+    "password": "adebare123"
 }
 ```
 
@@ -121,7 +89,7 @@ POST ⇒ {{url}}/user/login
 ```js
 {
     "email": "user@mail.com",
-    "password": "kimbali123"
+    "password": "adebare123"
 }
 
 ```
