@@ -1,21 +1,18 @@
 import { createTransport, Transporter } from "nodemailer";
-import { I2FACode, IConfirmationMail, IForgotPassword } from "./interface";
+import { IMailParams } from "./interface";
 import dotenv from "dotenv";
 import { ClientBaseUrl } from "../config/app";
 import accountSuccessMailTemplate from "./templates/accountSuccess";
 import authCodeTemplate from "./templates/authCode";
 import confrimAccountTemplate from "./templates/confirmAccount";
 import forgetPasswordTemplate from "./templates/forgetPassword";
-import AppError from "../utils/errorClass";
 import {
   ACCOUNT_SUCCESS_SUBJECT,
   AUTH_CODE_SUBJECT,
-  AUTH_PREFIX,
   CONFIRM_ACCOUNT_SUBJECT,
-  RESET_PASSWORD,
   PASSWORD_RESET_HELP,
-} from "./constant";
-import { responseStatusCodes } from "../utils/interfaces";
+} from "../constant";
+import Logger from "../utils/logger";
 
 dotenv.config();
 
@@ -25,20 +22,20 @@ const transporter: Transporter = createTransport({
   secure: true,
   auth: {
     type: "OAuth2",
-    user: process.env.GMAIL_USER,
+    user: process.env.USER_GMAIL,
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.GMAIL_USER_REFRESH_TOKEN,
+    refreshToken: process.env.USER_GMAIL_REFRESH_TOKEN,
   },
 });
 
 class MailService {
   private transporter: Transporter = transporter;
-  private user = `${process.env.SENDER_NAME} <${process.env.SENDER_EMAIL}>`;
+  private user = `${process.env.USER_NAME} <${process.env.USER_GMAIL}>`;
   private client_base_url = ClientBaseUrl;
 
-  public async sendAccountActivationRequest(params: IConfirmationMail) {
-    const html = confrimAccountTemplate(params.confirmationCode, this.client_base_url);
+  public async sendAccountActivationCode(params: IMailParams) {
+    const html = confrimAccountTemplate(params.code, this.client_base_url);
     try {
       await this.transporter.verify();
       this.transporter.sendMail(
@@ -46,25 +43,21 @@ class MailService {
           from: this.user,
           to: params.email,
           subject: CONFIRM_ACCOUNT_SUBJECT,
-          html: html,
+          html,
         },
         (error) => {
-          if (error)
-            throw new AppError({
-              message: error.toString(),
-              statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-            });
-          else return true;
+          if (error) {
+            Logger.error(`Account activation Email to ${params.email} failed!!`);
+            throw new Error(error.toString());
+          } else return true;
         }
       );
     } catch (error: any) {
-      throw new AppError({
-        message: error.toString(),
-        statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-      });
+      Logger.error(`Google Authentication Failed!: ${error.name}`);
+      throw new Error(error.toString());
     }
   }
-  public async send2FAAuthCode(params: I2FACode) {
+  public async send2FAAuthCode(params: IMailParams) {
     const html = authCodeTemplate({ name: params.name, code: params.code });
     try {
       await this.transporter.verify();
@@ -73,18 +66,21 @@ class MailService {
           from: this.user,
           to: params.email,
           subject: AUTH_CODE_SUBJECT,
-          html: html,
+          html,
         },
         (error) => {
-          if (error) throw new Error(error.toString());
-          else return true;
+          if (error) {
+            Logger.error(`2FAAuthCode Email to ${params.email} failed!!`);
+            throw new Error(error.toString());
+          } else return true;
         }
       );
-    } catch (error) {
-      throw new Error(error);
+    } catch (error: any) {
+      Logger.error(`Google Authentication Failed!: ${error.name}`);
+      throw new Error(error.toString());
     }
   }
-  public async sendAccountSuccessEmail(params: Partial<IConfirmationMail>) {
+  public async sendAccountSuccessEmail(params: Partial<IMailParams>) {
     const html = accountSuccessMailTemplate(this.client_base_url);
     try {
       await this.transporter.verify();
@@ -93,20 +89,23 @@ class MailService {
           from: this.user,
           to: params.email,
           subject: ACCOUNT_SUCCESS_SUBJECT,
-          html: html,
+          html,
         },
         (error) => {
-          if (error) throw new Error(error.toString());
-          else return true;
+          if (error) {
+            Logger.error(`Account Success Email to ${params.email} failed!!`);
+            throw new Error(error.toString());
+          } else return true;
         }
       );
-    } catch (err: any) {
-      throw new Error(err.toString());
+    } catch (error: any) {
+      Logger.error(`Google Authentication Failed!: ${error.name}`);
+      throw new Error(error.toString());
     }
   }
 
-  public async sendPasswordReset(params: IForgotPassword) {
-    const html = forgetPasswordTemplate(params.token, this.client_base_url, params.name);
+  public async sendPasswordReset(params: IMailParams) {
+    const html = forgetPasswordTemplate(params.code, this.client_base_url, params.name);
     try {
       await this.transporter.verify();
       this.transporter.sendMail(
@@ -114,15 +113,18 @@ class MailService {
           from: this.user,
           to: params.email,
           subject: PASSWORD_RESET_HELP,
-          html: html,
+          html,
         },
         (error) => {
-          if (error) throw new Error(error.toString());
-          else return true;
+          if (error) {
+            Logger.error(`Password reset Email to ${params.email} failed!!`);
+            throw new Error(error.toString());
+          } else return true;
         }
       );
-    } catch (error) {
-      throw new Error(error);
+    } catch (error: any) {
+      Logger.error(`Google Authentication Failed ${error}`);
+      throw new Error(error.toString());
     }
   }
 }

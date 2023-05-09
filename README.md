@@ -1,8 +1,6 @@
-# Project Name: E-Commerce API
+# Project Name: E Commerce API
 
 ## Description
-
-
 
 ---
 
@@ -18,24 +16,27 @@ Follow the steps highlighted below to get the application running on your local 
 
 ## Prerequiste
 
-    * Ensure you have `Node` with version >=14 installed.
-    * You have a text editor (preferably Vscode) installed on your computer
-    * MongoDB (if running locally)
-    * Postman (to test the APIs)
-    * Have a registered account with Mailtrap
+- Ensure you have `Node` with version >=14 installed.
+- You have a text editor (preferably Vscode) installed on your computer
+- MongoDB (if running locally)
+- Postman (to test the APIs)
+- Have a registered google account
 
 ## Steps
 
-    1. Clone the repository into your computer. Run command `git clone https://github.com/ismailtijani/Kimbali.git`
-    2. Open the project folder with your desire code editor
-    3. Open a built in terminal
-    4. Create a `.env` file in the root of the project and configure your environment variables (check .env.example file for details)
-    5. To install all dependencies used in the project, run `npm i`
-    6. To ensure the project is open with rules specific by eslint used in this project, type in `npm run lint` on the terminal
-    7. Next, ensure the project files are rightly formatted by typing in `npm run format:check`
-    8. Finally, to start the development server, `npm run dev`
+1. Clone the repository into your computer. Run command `git clone https://github.com/ismailtijani/E-Commerce-API.git`
+2. Open the project folder with your desire code editor
+3. Open a built in terminal
+4. Create a `.env`environment variables (check .env.example file for details)
+5. To install all dependencies used in the project, run `npm i`
+6. To ensure the project is open with rules specific by eslint used in this project, type in `npm run lint` on the terminal
+7. Next, ensure the project files are rightly formatted by typing in `npm run format:check`
+8. Finally, to start the development server, `npm run dev`
+9. Redis needs to be up and running on your machine - (for windows user you can install Redis through wsl: windows system for linux,
+   for Linux and Mac users just use the installer of your choice to install Redis and test to see if it's running on your machine)
+   follow the link to get started with the installation https://redis.io/docs/getting-started/installation/
 
-If everything went well, you should see the following printed on the terminal console <Server is running 🚀🚀🚀 on port 3000> <DB Connection Successful>
+If everything went well, you should see the following printed on the terminal console <Server is running 🚀🚀🚀 on port 8000> <DB Connection Successful>
 If you encounter any issues while doing any of the above commands, kindly see the sections below on the `available scripts` to find for little more insight.
 If the issue persist, kindly contact `Ismail => @ ismailtijani10@yahoo.com`
 
@@ -45,7 +46,7 @@ If the issue persist, kindly contact `Ismail => @ ismailtijani10@yahoo.com`
 
 - [x] The application is responsible for creating new Admin and User
 - [x] Customer cannot create another user account
-- [x] 
+- [x]
 
 ---
 
@@ -102,6 +103,30 @@ POST ⇒ {{url}}/user/login
     "DATA": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDNlNmQ0ZWY3MGRkNGM3ZDg0ZTViZTMiLCJpYXQiOjE2ODE4MTI4ODN9.MtKxkZW0P5jsfW50S6BqxOMFfMR_QMa-iIphUe3jClQ"
 }
 ```
+
+---
+
+## Contributing Rules
+
+1. Clone repository
+2. Checkout an "all-time" branch using the following format <_your name_>-development (e.g git checkout -b sot-development)
+
+NOTE: All Push and pull requests should be made toward the development branch.
+
+## Making a Commit
+
+Ensure to follow these steps when committing
+
+1. git add .
+2. npm run lint:fix
+3. git commit -m <_message here_>
+4. git pull origin development
+5. git push
+
+## Opening a Pull request
+
+1. Go to github
+2. open a new Pull Request to development
 
 ---
 

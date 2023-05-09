@@ -1,16 +1,4 @@
-export interface IConfirmationMail {
-  name: string;
-  email: string;
-  confirmationCode: string;
-}
-
-export interface IForgotPassword {
-  name: string;
-  email: string;
-  token: string;
-}
-
-export interface I2FACode {
+export interface IMailParams {
   name: string;
   email: string;
   code: string;

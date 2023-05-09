@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import Logger from "../utils/logger";
-import Environment from "../utils/environments";
+import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
 
 dotenv.config();
