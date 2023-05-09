@@ -40,4 +40,37 @@ class RedisCache {
     await this.client.connect();
     this.client.on("connection", () => (this.isClientReady = true));
   };
+
+  public async set<T>(key: string, value: T, callback: (error: boolean) => void, expT?: number) {
+    if (this.isClientReady) {
+      await this.client.setEx(key, expT ? expT : this.ttl, JSON.stringify(value));
+      return callback(false);
+    }
+    return callback(true);
+  }
+
+  public async get<T>(key: string, callback: (error: boolean, value: T | null) => void) {
+    if (this.isClientReady) {
+      const data = await this.client.get(key);
+      if (data) return callback(false, JSON.parse(data));
+    }
+    return callback(true, null);
+  }
+
+  public async del(key: string, callback: (error: boolean) => void) {
+    if (this.isClientReady) {
+      await this.client.del(key);
+      return callback(false);
+    }
+    return callback(true);
+  }
+
+  public async flush(callback: (error: boolean) => void) {
+    if (this.isClientReady) {
+      await this.client.flushAll();
+      return callback(false);
+    }
+
+    return callback(true);
+  }
 }
