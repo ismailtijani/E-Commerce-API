@@ -7,13 +7,12 @@ export interface IUser {
   };
   email: string;
   password: string;
-  phoneNumber: number;
+  phoneNumber: string;
   profilePhoto: string;
   gender: GenderEnum;
   tokens: object[];
-  isAdmin: boolean;
-  authLevel?: UserLevelEnum;
-  status?: AccountStatusEnum;
+  userLevel: UserLevelEnum;
+  status: AccountStatusEnum;
   resetPasswordToken: string | undefined;
   resetPasswordExpire: Date | undefined;
 }
