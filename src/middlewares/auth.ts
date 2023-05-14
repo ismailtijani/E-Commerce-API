@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import AppError from "../utils/errorClass";
 import jwt from "jsonwebtoken";
 import { IDecode, responseStatusCodes } from "../utils/interfaces";
-// import User from "../model/user";
+import User from "../modules/users/schema";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -21,6 +21,7 @@ class Authentication {
       //   Verify Token
       const decoded = <IDecode>jwt.verify(token, JWT_SECRET);
 
+      // Check if the User data exist in redis
       //   Get user from database
       const user = await User.findOne({
         _id: decoded._id,

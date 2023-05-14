@@ -1,7 +1,9 @@
+import { UserDocument } from "../modules/users/interface";
+
 declare global {
   namespace Express {
     interface Request {
-      // user: UserDocument;
+      user: UserDocument;
       token?: string;
     }
   }

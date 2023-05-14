@@ -1,5 +1,5 @@
 export interface IMailParams {
-  name: string;
+  name?: string;
   email: string;
-  code: string;
+  token: string;
 }

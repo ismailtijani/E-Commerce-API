@@ -7,15 +7,18 @@ import { IUser, IUserMethods, UserDocument, UserModel } from "./interface";
 import AppError from "../../utils/errorClass";
 import { responseStatusCodes } from "../../utils/interfaces";
 import Logger from "../../utils/logger";
+import { string } from "joi";
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
-    name: {
-      type: {
-        firstName: String,
-        lastName: String,
-      },
-      required: [true, "Name must be provided"],
+    firstName: {
+      type: String,
+      required: [true, "First name must be provided"],
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: [true, "Last name must be provided"],
       trim: true,
     },
     email: {
@@ -41,7 +44,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       default: null,
       trim: true,
     },
-    userLevel: {
+    accountType: {
       type: String,
       enum: Object.values(UserLevelEnum),
       default: UserLevelEnum.isUser,
@@ -53,10 +56,13 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
     },
     tokens: [
       {
-        type: String,
-        required: true,
+        token: {
+          type: String,
+          required: true,
+        },
       },
     ],
+    confirmationCode: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },
@@ -117,8 +123,13 @@ userSchema.statics.findByCredentials = async (
   const user = await User.findOne({ email });
   if (!user)
     throw new AppError({
-      message: "User does not exist",
+      message: "No Account with this credentials, kindly signup",
       statusCode: responseStatusCodes.NOT_FOUND,
+    });
+  if (user && user.status !== AccountStatusEnum.ACTIVATED)
+    throw new AppError({
+      message: "Account not activated, kindly check your mail for activation link",
+      statusCode: responseStatusCodes.UNPROCESSABLE,
     });
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch)
@@ -138,3 +149,5 @@ userSchema.statics.findByCredentials = async (
 //   next();
 // });
 const User = model<IUser, UserModel>("User", userSchema);
+
+export default User;
