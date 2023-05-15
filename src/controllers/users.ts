@@ -11,6 +11,7 @@ import { responseStatusCodes } from "../utils/interfaces";
 import { AccountStatusEnum } from "../enums";
 import { AUTH_PREFIX, LOGIN_TOKEN } from "../constant";
 import redisCache from "../config/redisCache";
+import Authentication from "../middlewares/auth";
 
 export default class Controller {
   static signup: RequestHandler = async (req, res, next) => {
@@ -33,7 +34,9 @@ export default class Controller {
       //Create User account
       const user = await User.create(req.body);
       //Generate auth token
-      const token = await user.generateAuthToken();
+      const token = await Authentication.generateAuthToken(user);
+
+      //Store Token in redis
 
       // Send Confirmation Message to new user
       const status = MailService.sendAccountActivationCode({ email, token });
@@ -67,7 +70,7 @@ export default class Controller {
           message: "Insufficient parameters",
           statusCode: responseStatusCodes.BAD_REQUEST,
         });
-
+      //Get Token from Redis
       const user = await User.findOne({ confirmationCode });
       if (!user)
         throw new AppError({
@@ -89,7 +92,7 @@ export default class Controller {
       //Send Account confirmation Success mail
       MailService.sendAccountSuccessEmail({ email: user.email });
 
-      responseHelper.successResponse(res, "Account Activation was successful", updatedData);
+      responseHelper.successResponse(res, "Account Activation was successful");
     } catch (error) {
       next(error);
     }
@@ -102,18 +105,27 @@ export default class Controller {
     };
     try {
       const user = await User.findByCredentials(email, password);
+      const { _id, firstName } = user;
       //Generate 2FA code
-      const code = Math.floor(Math.random() * (999999 - 100000) + 100000).toString();
+      const confirmationCode = Math.floor(Math.random() * (999999 - 100000) + 100000).toString();
       const codeExpiration = 15 * 60;
-      //Store code in redis
-      const response = await RedisCache.set(AUTH_PREFIX + user._id, { code }, codeExpiration);
+      //   Store code in redis
+      const response = await RedisCache.set(
+        AUTH_PREFIX + _id,
+        { confirmationCode },
+        codeExpiration
+      );
       if (!response)
         throw new AppError({
           message: "An Error occured, Please try again",
           statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
         });
       //Send 2FAuth code to user
-      const status = MailService.send2FAAuthCode({ name: user.firstName, token: code, email });
+      const status = MailService.send2FAAuthCode({
+        name: firstName,
+        token: confirmationCode,
+        email,
+      });
       if (!status) {
         throw new AppError({
           message: " An Error occured, kindly try again!",
@@ -121,11 +133,10 @@ export default class Controller {
         });
       }
 
-      responseHelper.successResponse(
-        res,
-        "Login Success, Input the auth code send to your mail",
-        code
-      );
+      responseHelper.successResponse(res, `2Factor Code sent to ${email} `, {
+        confirmationCode,
+        _id,
+      });
     } catch (error) {
       next(error);
     }
@@ -134,13 +145,7 @@ export default class Controller {
   static loginSuccess: RequestHandler = async (req, res, next) => {
     try {
       const user = req.user;
-      if (!user)
-        throw new AppError({
-          message: "Login failed, unable to obtain access token",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
-      //Generate login token
-      const token = await user.generateAuthToken;
+      const token = req.token;
       //Set login to redis
       await RedisCache.set(LOGIN_TOKEN + user._id, { token });
       return responseHelper.successResponse(res, "You have successfully login", { user, token });
@@ -212,15 +217,15 @@ export default class Controller {
 
   static logout: RequestHandler = async (req, res, next) => {
     const user = req.user;
-    try {
-      //Check through the user tokens to filter out the one that was used for auth on the device
-      user.tokens = user.tokens.filter((token: any) => token.token !== req.token);
-      await redisCache.del(LOGIN_TOKEN + user._id);
-      await user.save();
-      responseHelper.successResponse(res, "You've successfully logged out of this system");
-    } catch (error) {
-      next(error);
-    }
+    // try {
+    //   //Check through the user tokens to filter out the one that was used for auth on the device
+    //   user.tokens = user.tokens.filter((token: any) => token.token !== req.token);
+    //   await redisCache.del(LOGIN_TOKEN + user._id);
+    //   await user.save();
+    //   responseHelper.successResponse(res, "You've successfully logged out of this system");
+    // } catch (error) {
+    //   next(error);
+    // }
   };
 
   static forgetPassword: RequestHandler = async (req, res, next) => {

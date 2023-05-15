@@ -54,14 +54,6 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       enum: Object.values(AccountStatusEnum),
       default: AccountStatusEnum.PENDING,
     },
-    tokens: [
-      {
-        token: {
-          type: String,
-          required: true,
-        },
-      },
-    ],
     confirmationCode: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
@@ -82,13 +74,15 @@ userSchema.pre<UserDocument>("save", async function (next) {
   next();
 });
 
-// User Token Generation
-userSchema.methods.generateAuthToken = async function () {
-  const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET as string);
-  this.tokens = this.tokens.concat({ token });
-  await this.save();
-  return token;
-};
+// // User Token Generation
+// userSchema.methods.generateAuthToken = async function () {
+//   const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET as string, {
+//     expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+//   });
+//   this.tokens = this.tokens.concat({ token });
+//   await this.save();
+//   return token;
+// };
 
 // Generate and hash password token
 userSchema.methods.generateResetPasswordToken = async function () {
@@ -140,7 +134,7 @@ userSchema.statics.findByCredentials = async (
   return user;
 };
 
-// // Deleting User's records upon Deleting User Profile
+// Deleting User's records upon Deleting User Profile
 // userSchema.pre<UserDocument>("remove", async function (next) {
 //   await ModelName.deleteMany({ foreignField: this._id }); //Input model name and foreign field
 //   Logger.warn(
