@@ -101,7 +101,7 @@ export default class Controller {
       const { _id, firstName } = user;
       // check if the last login session still lives
       const code = await RedisCache.get(LOGIN_TOKEN + _id);
-      if (code) return responseHelper.successResponse(res, "You have successfully login");
+      if (code) return responseHelper.successResponse(res, "You have successfully login", user);
 
       //Generate 2FA code
       const confirmationCode = Authentication.generateConfirmationCode();
