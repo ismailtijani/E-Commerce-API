@@ -38,12 +38,11 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       required: [true, "Phone number is required"],
     },
     profilePhoto: { type: String }, //Need to checkout
-    gender: {
-      type: String,
-      enum: Object.values(GenderEnum),
-      default: null,
-      trim: true,
-    },
+    tokens: [
+      {
+        token: { type: String, required: true },
+      },
+    ],
     accountType: {
       type: String,
       enum: Object.values(UserLevelEnum),
@@ -74,15 +73,15 @@ userSchema.pre<UserDocument>("save", async function (next) {
   next();
 });
 
-// // User Token Generation
-// userSchema.methods.generateAuthToken = async function () {
-//   const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET as string, {
-//     expiresIn: process.env.TOKEN_VALIDATION_DURATION,
-//   });
-//   this.tokens = this.tokens.concat({ token });
-//   await this.save();
-//   return token;
-// };
+// User Token Generation
+userSchema.methods.generateAuthToken = async function () {
+  const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET as string, {
+    expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+  });
+  this.tokens = this.tokens.concat({ token });
+  await this.save();
+  return token;
+};
 
 // Generate and hash password token
 userSchema.methods.generateResetPasswordToken = async function () {

@@ -8,7 +8,7 @@ export interface IUser {
   password: string;
   phoneNumber: string;
   profilePhoto: string | undefined;
-  gender: GenderEnum;
+  tokens: object[];
   confirmationCode: string | null;
   accountType: UserLevelEnum;
   status: AccountStatusEnum;
@@ -19,6 +19,7 @@ export interface IUser {
 export type UserDocument = IUser & IUserMethods & Document;
 
 export interface IUserMethods {
+  generateAuthToken(): Promise<string>;
   generateResetPasswordToken(): Promise<string>;
 }
 

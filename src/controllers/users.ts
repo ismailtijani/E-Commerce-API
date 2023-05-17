@@ -33,41 +33,28 @@ export default class Controller {
         });
       }
       //Create User account
-      // const user = await User.create(req.body);
+      const user = await User.create(req.body);
       //Generate auth token
-      // const token = `${email} - ${Date.now().toString()}`;
-      const token = jwt.sign({ email }, process.env.JWT_SECRET as string); //** */
-
-      //Store Token in redis
-
-      const response = await RedisCache.set(AUTH_PREFIX + email, token, 900);
-
-      if (!response)
-        throw new AppError({
-          message: "An Error occurred, Please try again",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-
+      const token = await user.generateAuthToken();
       // Send Confirmation Message to new user
       const status = MailService.sendAccountActivationCode({ email, token });
 
       if (!status) {
-        // await User.deleteOne({ email });
-        await RedisCache.del(AUTH_PREFIX + email);
+        await User.deleteOne({ email });
         throw new AppError({
           message: "Mailer Service Error, kindly try again!",
           statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
         });
       }
 
-      responseHelper.createdResponse(res, "Account confirmation code sent successfully", token);
+      responseHelper.createdResponse(res, "Account created successfuly!");
     } catch (error: any) {
-      if (error.name === "ValidationError") {
-        Logger.error(error);
-        return res
-          .status(responseStatusCodes.BAD_REQUEST)
-          .json({ name: error.name, message: error.message });
-      }
+      // if (error.name === "ValidationError") {
+      //   Logger.error(error);
+      //   return res
+      //     .status(responseStatusCodes.BAD_REQUEST)
+      //     .json({ name: error.name, message: error.message });
+      // }
 
       next(error);
     }
@@ -75,36 +62,14 @@ export default class Controller {
 
   static confirmAccount: RequestHandler = async (req, res, next) => {
     const { confirmationCode } = req.params;
-    const { email } = req.body;
+
     try {
-      if (!confirmationCode)
+      const user = await User.findOne({ confirmationCode });
+      if (!user)
         throw new AppError({
-          message: "Insufficient parameters",
+          message: "Invalid or Expired confirmation code",
           statusCode: responseStatusCodes.BAD_REQUEST,
         });
-      //Get Token from Redis
-      const token = await redisCache.get(AUTH_PREFIX + email);
-      if (!token)
-        throw new AppError({
-          message: "An Error occurred, Please try again",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-
-      if (confirmationCode !== token)
-        throw new AppError({
-          message: "Invalid or Expired code",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
-
-      //Create User Account
-      //Get User Data from Redis
-
-      // const user = await User.findOne({ confirmationCode });
-      // if (!user)
-      //   throw new AppError({
-      //     message: "Invalid or Expired confirmation code",
-      //     statusCode: responseStatusCodes.BAD_REQUEST,
-      //   });
 
       const updateData = { status: AccountStatusEnum.ACTIVATED, confirmationCode: null };
       const updatedData = User.findOneAndUpdate({ _id: user._id }, updateData, {
@@ -113,7 +78,7 @@ export default class Controller {
       });
       if (!updatedData)
         throw new AppError({
-          message: "Account Activation failed!",
+          message: "Account Activation failed!, Please try again",
           statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
         });
 
@@ -134,8 +99,12 @@ export default class Controller {
     try {
       const user = await User.findByCredentials(email, password);
       const { _id, firstName } = user;
+      // check if the last login session still lives
+      const code = await RedisCache.get(LOGIN_TOKEN + _id);
+      if (code) return responseHelper.successResponse(res, "You have successfully login");
+
       //Generate 2FA code
-      const confirmationCode = Math.floor(Math.random() * (999999 - 100000) + 100000).toString();
+      const confirmationCode = Authentication.generateConfirmationCode();
       const codeExpiration = 15 * 60;
       //   Store code in redis
       const response = await RedisCache.set(
@@ -148,6 +117,7 @@ export default class Controller {
           message: "An Error occured, Please try again",
           statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
         });
+
       //Send 2FAuth code to user
       const status = MailService.send2FAAuthCode({
         name: firstName,
@@ -161,10 +131,7 @@ export default class Controller {
         });
       }
 
-      responseHelper.successResponse(res, `2Factor Code sent to ${email} `, {
-        confirmationCode,
-        _id,
-      });
+      responseHelper.successResponse(res, `2Factor Code sent to ${email} `, { _id });
     } catch (error) {
       next(error);
     }
@@ -172,11 +139,11 @@ export default class Controller {
 
   static loginSuccess: RequestHandler = async (req, res, next) => {
     try {
-      const user = req.user;
+      // const user = req.user;
       const token = req.token;
       //Set login to redis
-      await RedisCache.set(LOGIN_TOKEN + user._id, { token });
-      return responseHelper.successResponse(res, "You have successfully login", { user, token });
+      // await RedisCache.set(LOGIN_TOKEN + user._id, { token });
+      return responseHelper.successResponse(res, "You have successfully login", { token });
     } catch (error) {
       next(error);
     }
