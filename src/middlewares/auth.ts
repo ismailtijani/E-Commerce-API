@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import AppError from "../utils/errorClass";
-import jwt from "jsonwebtoken";
-import { IDecode, responseStatusCodes } from "../utils/interfaces";
+import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
+import { responseStatusCodes } from "../utils/interfaces";
 import User from "../modules/users/schema";
 import dotenv from "dotenv";
 import RedisCache from "../config/redisCache";
@@ -23,30 +23,32 @@ export default class Authentication {
           statusCode: responseStatusCodes.UNAUTHORIZED,
         });
       //   Verify Token
-      const decoded = <IDecode>jwt.verify(token, JWT_SECRET);
+      jwt.verify(token, JWT_SECRET, async (error, decoded) => {
+        if (error)
+          throw new AppError({
+            message: "Invalid or expired token",
+            statusCode: responseStatusCodes.UNAUTHORIZED,
+          });
 
-      // Check if the User data exist in redis
-      //   Get user from database
-      const user = await User.findOne({
-        _id: decoded._id,
-        "tokens.token": token,
+        const { _id } = decoded as { _id: string };
+        // Check if the User data exist in redis
+        //   Get user from database
+        const user = await User.findOne({
+          _id,
+          // "tokens.token": token,
+        });
+
+        if (!user)
+          throw new AppError({
+            message: "Please Authenticate",
+            statusCode: responseStatusCodes.UNAUTHORIZED,
+          });
+        // Add user to request
+        req.user = user;
+        req.token = token;
+        next();
       });
-
-      if (!user)
-        throw new AppError({
-          message: "Please Authenticate",
-          statusCode: responseStatusCodes.UNAUTHORIZED,
-        });
-      // Add user to request
-      req.user = user;
-      req.token = token;
-      next();
     } catch (error: any) {
-      if (error.name === "JsonWebTokenError")
-        return res.status(responseStatusCodes.BAD_REQUEST).json({
-          STATUS: "FAILURE",
-          ERROR: "Invalid Token",
-        });
       next(error);
     }
   }

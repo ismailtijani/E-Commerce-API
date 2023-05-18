@@ -11,10 +11,6 @@ declare global {
 
 export type Info = string | object;
 
-export interface IDecode {
-  _id: string;
-}
-
 export interface AppErrorArgs {
   name?: string;
   message: string;

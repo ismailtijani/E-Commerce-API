@@ -98,7 +98,7 @@ export default class Controller {
     };
     try {
       const user = await User.findByCredentials(email, password);
-      const { _id, firstName } = user;
+      if (user && user.status === AccountStatusEnum.ACTIVATED) const { _id, firstName } = user;
       // check if the last login session still lives
       const code = await RedisCache.get(LOGIN_TOKEN + _id);
       if (code) return responseHelper.successResponse(res, "You have successfully login", user);
