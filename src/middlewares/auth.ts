@@ -5,11 +5,12 @@ import { IDecode, responseStatusCodes } from "../utils/interfaces";
 import User from "../modules/users/schema";
 import dotenv from "dotenv";
 import RedisCache from "../config/redisCache";
-import { AUTH_PREFIX, LOGIN_TOKEN } from "../constant";
+import { ACCESS_TOKEN, AUTH_PREFIX, LOGIN_TOKEN } from "../constant";
 import { responseHelper } from "../utils/responseHelper";
 import { IUser, IUserMethods, UserDocument, UserModel } from "../modules/users/interface";
 import { UserLevelEnum } from "../enums";
 import { Types } from "mongoose";
+import Logger from "../utils/logger";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -51,9 +52,39 @@ export default class Authentication {
     }
   }
 
+  static async generateAuthToken(_id: string) {
+    let code = "";
+    jwt.sign(
+      { _id },
+      process.env.JWT_SECRET as string,
+      {
+        expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+      },
+      async (error, token) => {
+        if (error) {
+          Logger.error("JWT Error, couldn't generate token");
+          throw new AppError({
+            message: "An error occured, please try again",
+            statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+          });
+        }
+
+        const ttl = 7 * 24 * 60 * 60;
+        const response = await RedisCache.set(ACCESS_TOKEN + _id, token, ttl);
+        if (!response)
+          throw new AppError({
+            message: "An Error occured, Please try again",
+            statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+          });
+
+        code = token as string;
+      }
+    );
+    return code;
+  }
+
   static generateConfirmationCode() {
     const confirmationCode = Math.floor(Math.random() * (999999 - 100000) + 100000).toString();
-
     return confirmationCode;
   }
 
@@ -62,12 +93,6 @@ export default class Authentication {
     const { code: confirmationCode } = req.body;
 
     try {
-      // const user = await User.findOne({ _id });
-      // if (!user)
-      //   throw new AppError({
-      //     message: "You seem not to be authorized",
-      //     statusCode: responseStatusCodes.UNAUTHORIZED,
-      //   });
       //Fetch and Validate 2FAuth token
       const authToken = await RedisCache.get(AUTH_PREFIX + _id);
       if (!authToken)
@@ -84,11 +109,10 @@ export default class Authentication {
           statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
         });
 
+      const user = await User.findById(_id);
       // Generate AuthToken
+      const token = await this.generateAuthToken(_id);
 
-      const token = this.generateConfirmationCode();
-      const codeExpiration = 24 * 60 * 60;
-      await RedisCache.set(LOGIN_TOKEN + _id, { token }, codeExpiration);
       //Add user and token to request
       // req.user = user;
       req.token = token;

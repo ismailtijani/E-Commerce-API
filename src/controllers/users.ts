@@ -35,7 +35,10 @@ export default class Controller {
       //Create User account
       const user = await User.create(req.body);
       //Generate auth token
-      const token = await user.generateAuthToken();
+      // const token = await user.generateAuthToken();
+      const token = crypto.randomBytes(20).toString("hex");
+      user.confirmationCode = token;
+      await user.save();
       // Send Confirmation Message to new user
       const status = MailService.sendAccountActivationCode({ email, token });
 
