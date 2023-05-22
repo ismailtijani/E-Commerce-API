@@ -1,10 +1,4 @@
-import {
-  createClient,
-  RedisClientOptions,
-  RedisClientType,
-  RedisModules,
-  RedisScripts,
-} from "redis";
+import { createClient, RedisClientType } from "redis";
 import dotenv from "dotenv";
 import Logger from "../utils/logger";
 

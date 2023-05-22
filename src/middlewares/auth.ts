@@ -1,15 +1,10 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import AppError from "../utils/errorClass";
-import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import { responseStatusCodes } from "../utils/interfaces";
 import User from "../modules/users/schema";
-import dotenv from "dotenv";
 import RedisCache from "../config/redisCache";
-import { ACCESS_TOKEN, AUTH_PREFIX, LOGIN_TOKEN } from "../constant";
-import { responseHelper } from "../utils/responseHelper";
-import { IUser, IUserMethods, UserDocument, UserModel } from "../modules/users/interface";
-import { UserLevelEnum } from "../enums";
-import { Types } from "mongoose";
+import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import Logger from "../utils/logger";
 
 export default class Authentication {
@@ -32,12 +27,8 @@ export default class Authentication {
           });
 
         const { _id } = decoded as { _id: string };
-        // Check if the User data exist in redis
         //   Get user from database
-        const user = await User.findOne({
-          _id,
-          // "tokens.token": token,
-        });
+        const user = await User.findById({ _id });
 
         if (!user)
           throw new AppError({
@@ -58,7 +49,7 @@ export default class Authentication {
     let code = "";
     jwt.sign(
       { _id },
-      process.env.JWT_SECRET as string,
+      JWT_SECRET,
       {
         expiresIn: process.env.TOKEN_VALIDATION_DURATION,
       },
@@ -72,7 +63,7 @@ export default class Authentication {
         }
 
         const ttl = 7 * 24 * 60 * 60;
-        const response = await RedisCache.set(ACCESS_TOKEN + _id, token, ttl);
+        const response = await RedisCache.set(ACCESS_TOKEN + _id, { token }, ttl);
         if (!response)
           throw new AppError({
             message: "An Error occured, Please try again",
@@ -92,12 +83,12 @@ export default class Authentication {
 
   static tokenVerification: RequestHandler = async (req, res, next) => {
     const { _id } = req.params;
-    const { code: confirmationCode } = req.body;
+    const { code: authToken } = req.body;
 
     try {
       //Fetch and Validate 2FAuth token
-      const authToken = await RedisCache.get(AUTH_PREFIX + _id);
-      if (!authToken)
+      const { confirmationCode } = await RedisCache.get(AUTH_PREFIX + _id);
+      if (!confirmationCode)
         throw new AppError({
           message: "Auth Code expired or does not exist",
           statusCode: responseStatusCodes.NOT_FOUND,
@@ -112,11 +103,17 @@ export default class Authentication {
         });
 
       const user = await User.findById(_id);
+      if (!user) {
+        throw new AppError({
+          message: "User not found!",
+          statusCode: responseStatusCodes.BAD_REQUEST,
+        });
+      }
       // Generate AuthToken
       const token = await this.generateAuthToken(_id);
 
       //Add user and token to request
-      // req.user = user;
+      req.user = user;
       req.token = token;
       next();
     } catch (error) {

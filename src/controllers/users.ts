@@ -1,6 +1,5 @@
 import { RequestHandler } from "express";
 import crypto from "crypto";
-import jwt from "jsonwebtoken";
 import RedisCache from "../config/redisCache";
 import MailService from "../mailer/service";
 import AppError from "../utils/errorClass";
@@ -10,8 +9,7 @@ import { responseHelper } from "../utils/responseHelper";
 import User from "../modules/users/schema";
 import { responseStatusCodes } from "../utils/interfaces";
 import { AccountStatusEnum } from "../enums";
-import { AUTH_PREFIX, LOGIN_TOKEN } from "../constant";
-import redisCache from "../config/redisCache";
+import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import Authentication from "../middlewares/auth";
 
 export default class Controller {
@@ -101,10 +99,10 @@ export default class Controller {
     };
     try {
       const user = await User.findByCredentials(email, password);
-      if (user && user.status === AccountStatusEnum.ACTIVATED) const { _id, firstName } = user;
+      const { _id, firstName } = user;
       // check if the last login session still lives
-      const code = await RedisCache.get(LOGIN_TOKEN + _id);
-      if (code) return responseHelper.successResponse(res, "You have successfully login", user);
+      const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
+      if (token) return responseHelper.successResponse(res, "You have successfully login", user);
 
       //Generate 2FA code
       const confirmationCode = Authentication.generateConfirmationCode();
@@ -142,11 +140,9 @@ export default class Controller {
 
   static loginSuccess: RequestHandler = async (req, res, next) => {
     try {
-      // const user = req.user;
+      const user = req.user;
       const token = req.token;
-      //Set login to redis
-      // await RedisCache.set(LOGIN_TOKEN + user._id, { token });
-      return responseHelper.successResponse(res, "You have successfully login", { token });
+      return responseHelper.successResponse(res, "You have successfully login", { user, token });
     } catch (error) {
       next(error);
     }
@@ -178,11 +174,10 @@ export default class Controller {
     }
   };
 
-  static deleteAvatar: RequestHandler = async (req, res, next) => {
-    const user = req.user;
+  static deleteProfilePhoto: RequestHandler = async (req, res, next) => {
     try {
-      user.profilePhoto = undefined;
-      await user.save();
+      req.user.profilePhoto = undefined;
+      await req.user.save();
       responseHelper.successResponse(res, "Image deleted successfully");
     } catch (error) {
       next(error);
@@ -214,16 +209,18 @@ export default class Controller {
   };
 
   static logout: RequestHandler = async (req, res, next) => {
-    const user = req.user;
-    // try {
-    //   //Check through the user tokens to filter out the one that was used for auth on the device
-    //   user.tokens = user.tokens.filter((token: any) => token.token !== req.token);
-    //   await redisCache.del(LOGIN_TOKEN + user._id);
-    //   await user.save();
-    //   responseHelper.successResponse(res, "You've successfully logged out of this system");
-    // } catch (error) {
-    //   next(error);
-    // }
+    try {
+      //Delete the user token from redis
+      const response = await RedisCache.del(ACCESS_TOKEN + req.user._id);
+      if (response)
+        throw new AppError({
+          message: "Error signing out, Please try again",
+          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+        });
+      responseHelper.successResponse(res, "You've successfully logged out of this system");
+    } catch (error) {
+      next(error);
+    }
   };
 
   static forgetPassword: RequestHandler = async (req, res, next) => {
@@ -239,13 +236,13 @@ export default class Controller {
     //Generate reset Password Token
     const resetToken = await user.generateResetPasswordToken();
     // Create reset url
-    const resetURl = `${req.protocol}://${req.get("host")}/forget_password/${resetToken}`;
+    // const resetURl = `${req.protocol}://${req.get("host")}/forget_password/${resetToken}`;
 
     try {
       // Send reset URL to user via Mail
       const status = MailService.sendPasswordReset({
         name: user.firstName,
-        token: resetURl,
+        token: resetToken,
         email,
       });
 
@@ -258,7 +255,10 @@ export default class Controller {
         });
       }
 
-      return responseHelper.successResponse(res, "Email Sent ✅");
+      return responseHelper.successResponse(
+        res,
+        "Reset password link have been sent to your Email✅"
+      );
     } catch (error) {
       next(error);
     }
@@ -288,16 +288,15 @@ export default class Controller {
 
       await user.save();
 
-      return responseHelper.successResponse(res, "Password reset successfuly");
+      return responseHelper.successResponse(res, "Password reset successfuly ✅");
     } catch (error) {
       next(error);
     }
   };
 
   static deleteProfile: RequestHandler = async (req, res, next) => {
-    const user = req.user;
     try {
-      await user.deleteOne();
+      await req.user.deleteOne();
       return responseHelper.successResponse(res, "Account deactivated successfully");
     } catch (error) {
       next(error);

@@ -1,13 +1,10 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { UserLevelEnum, AccountStatusEnum, GenderEnum } from "../../enums";
+import { UserLevelEnum, AccountStatusEnum } from "../../enums";
 import { IUser, IUserMethods, UserDocument, UserModel } from "./interface";
 import AppError from "../../utils/errorClass";
 import { responseStatusCodes } from "../../utils/interfaces";
-import Logger from "../../utils/logger";
-import { string } from "joi";
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
@@ -38,11 +35,6 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       required: [true, "Phone number is required"],
     },
     profilePhoto: { type: String }, //Need to checkout
-    tokens: [
-      {
-        token: { type: String, required: true },
-      },
-    ],
     accountType: {
       type: String,
       enum: Object.values(UserLevelEnum),
@@ -73,29 +65,15 @@ userSchema.pre<UserDocument>("save", async function (next) {
   next();
 });
 
-// User Token Generation
-userSchema.methods.generateAuthToken = async function () {
-  const token = jwt.sign({ _id: this._id.toString() }, process.env.JWT_SECRET as string, {
-    expiresIn: process.env.TOKEN_VALIDATION_DURATION,
-  });
-  this.tokens = this.tokens.concat({ token });
-  await this.save();
-  return token;
-};
-
 // Generate and hash password token
 userSchema.methods.generateResetPasswordToken = async function () {
   // Generate token
   const resetToken = crypto.randomBytes(20).toString("hex");
-
   // Hash token and send to resetPassword token field
   this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-
   // Set expire
   this.resetPasswordExpire = Date.now() + 30 * 60 * 1000;
-
   await this.save();
-
   return resetToken;
 };
 
