@@ -1,0 +1,42 @@
+import { Request } from "express";
+import multer from "multer";
+import multerS3 from "multer-s3";
+import s3Client from "../config/aws";
+import AppError from "../utils/errorClass";
+import { responseStatusCodes } from "../utils/interfaces";
+
+const upload = () => {
+  const fileFilter = (req: Request, file: any, cb: any) => {
+    if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
+      return cb(
+        new AppError({
+          message: "Invalid file format, Please upload an Image",
+          statusCode: responseStatusCodes.BAD_REQUEST,
+        })
+      );
+    }
+    cb(null, true);
+  };
+
+  const storage = multerS3({
+    s3: s3Client,
+    bucket: process.env.AMAZON_S3_PROPERTY_IMAGES_BUCKET as string,
+    acl: "public-read",
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: (req, file, cb) => {
+      const fileName =
+        Date.now() +
+        "_" +
+        file.fieldname +
+        "_" +
+        file.originalname +
+        "." +
+        file.mimetype.split("/")[1];
+      cb(null, fileName);
+    },
+  });
+
+  return multer({ storage, fileFilter, limits: { fileSize: 5000000 } });
+};
+
+export default upload;

@@ -152,14 +152,25 @@ export default class Controller {
     return responseHelper.successResponse(res, undefined, req.user);
   };
 
-  static uploadAvatar: RequestHandler = async (req, res, next) => {
+  static uploadProfilePhoto: RequestHandler = async (req, res, next) => {
     try {
+      const user = req.user;
+      if (!req.file)
+        throw new AppError({
+          message: " Invalid input",
+          statusCode: responseStatusCodes.BAD_REQUEST,
+        });
+      // const buffer = await sharp(req.file?.buffer).resize(250, 250).png().toBuffer();
+      user.profilePhoto = "";
+      await user.save();
+
+      responseHelper.successResponse(res, "Image uploaded successfully");
     } catch (error: any) {
       next(error);
     }
   };
 
-  static viewAvatar: RequestHandler = async (req, res, next) => {
+  static viewProfilePhoto: RequestHandler = async (req, res, next) => {
     try {
       const user = req.user;
       if (!user.profilePhoto)
