@@ -1,7 +1,7 @@
 import { Request } from "express";
 import multer from "multer";
 import multerS3 from "multer-s3";
-import s3Client from "../config/aws";
+import s3 from "../config/aws";
 import AppError from "../utils/errorClass";
 import { responseStatusCodes } from "../utils/interfaces";
 
@@ -19,7 +19,7 @@ const upload = () => {
   };
 
   const storage = multerS3({
-    s3: s3Client,
+    s3,
     bucket: process.env.AMAZON_S3_PROPERTY_IMAGES_BUCKET as string,
     acl: "public-read",
     contentType: multerS3.AUTO_CONTENT_TYPE,

@@ -4,15 +4,17 @@ import RedisCache from "../config/redisCache";
 import MailService from "../mailer/service";
 import AppError from "../utils/errorClass";
 import { IUser } from "../modules/users/interface";
-import Logger from "../utils/logger";
 import { responseHelper } from "../utils/responseHelper";
 import User from "../modules/users/schema";
 import { responseStatusCodes } from "../utils/interfaces";
 import { AccountStatusEnum } from "../enums";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import Authentication from "../middlewares/auth";
+import S3 from "../config/aws";
 
 export default class Controller {
+  static Bucket = process.env.AMAZON_S3_PROPERTY_IMAGES_BUCKET as string;
+
   static signup: RequestHandler = async (req, res, next) => {
     const { email } = req.body as { email: IUser["email"] };
     try {
@@ -153,18 +155,26 @@ export default class Controller {
   };
 
   static uploadProfilePhoto: RequestHandler = async (req, res, next) => {
+    const user = req.user;
     try {
-      const user = req.user;
       if (!req.file)
         throw new AppError({
           message: " Invalid input",
           statusCode: responseStatusCodes.BAD_REQUEST,
         });
-      // const buffer = await sharp(req.file?.buffer).resize(250, 250).png().toBuffer();
-      user.profilePhoto = "";
-      await user.save();
+      if ("location" in req.file && "key" in req.file) {
+        user.imageUrl = req.file.location as string;
+        await user.save();
 
-      responseHelper.successResponse(res, "Image uploaded successfully");
+        return responseHelper.successResponse(res, "Image uploaded successfully", {
+          location: req.file.location as string,
+          key: req.file.key as string,
+        });
+      }
+      throw new AppError({
+        message: "Failed to save user profile photo",
+        statusCode: responseStatusCodes.NOT_IMPLEMENTED,
+      });
     } catch (error: any) {
       next(error);
     }
@@ -172,14 +182,32 @@ export default class Controller {
 
   static viewProfilePhoto: RequestHandler = async (req, res, next) => {
     try {
-      const user = req.user;
-      if (!user.profilePhoto)
-        throw new AppError({
-          message: "No image uploaded, Upload now",
-          statusCode: responseStatusCodes.NOT_FOUND,
+      const response = await S3.getObject({ Bucket: this.Bucket, Key: req.params.filename });
+      return responseHelper.successResponse(res, undefined, response.Body);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static updateProfilePhoto: RequestHandler = async (req, res, next) => {
+    try {
+      await S3.deleteObject({ Bucket: this.Bucket, Key: req.params.filename });
+      const response = await S3.putObject({
+        Bucket: this.Bucket,
+        Key: req.file?.filename,
+        Body: req.file?.buffer,
+      });
+
+      if ("Location" in response && "Key" in response) {
+        return responseHelper.successResponse(res, "Image uploaded successfully", {
+          location: response.Location,
+          key: response.Key,
         });
-      res.set("Content-Type", "Image/png");
-      res.status(200).send(user.profilePhoto);
+      }
+      throw new AppError({
+        message: "Failed to save user profile photo",
+        statusCode: responseStatusCodes.NOT_IMPLEMENTED,
+      });
     } catch (error) {
       next(error);
     }
@@ -187,9 +215,16 @@ export default class Controller {
 
   static deleteProfilePhoto: RequestHandler = async (req, res, next) => {
     try {
-      req.user.profilePhoto = undefined;
-      await req.user.save();
-      responseHelper.successResponse(res, "Image deleted successfully");
+      const response = await S3.deleteObject({ Bucket: this.Bucket, Key: req.params.filename });
+      if (response.$metadata.httpStatusCode === 204) {
+        req.user.imageUrl = undefined;
+        await req.user.save();
+        return responseHelper.successResponse(res, "Image deleted successfully");
+      }
+      throw new AppError({
+        message: "Error deleting image, please try again",
+        statusCode: responseStatusCodes.NOT_IMPLEMENTED,
+      });
     } catch (error) {
       next(error);
     }
@@ -213,7 +248,7 @@ export default class Controller {
       const user: any = req.user;
       updates.forEach((update) => (user[update] = req.body[update]));
       await user.save();
-      responseHelper.successResponse(res, "Profile updated successfully✅");
+      return responseHelper.successResponse(res, "Profile updated successfully✅");
     } catch (error) {
       next(error);
     }

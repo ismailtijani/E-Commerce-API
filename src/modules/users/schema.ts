@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       type: String,
       required: [true, "Phone number is required"],
     },
-    profilePhoto: { type: String }, //Need to checkout
+    imageUrl: String,
     accountType: {
       type: String,
       enum: Object.values(UserLevelEnum),
@@ -82,7 +82,7 @@ userSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;
   delete userObject.tokens;
-  delete userObject.profilePhoto;
+  delete userObject.imageUrl;
   return userObject;
 };
 

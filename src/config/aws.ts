@@ -1,6 +1,6 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3 } from "@aws-sdk/client-s3";
 
-export default new S3Client({
+export default new S3({
   forcePathStyle: true,
   region: process.env.AMAZON_S3_BUCKET_REGION,
   credentials: {

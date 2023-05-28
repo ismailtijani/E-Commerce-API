@@ -1,5 +1,5 @@
 import { HydratedDocument, Model, Document } from "mongoose";
-import { UserLevelEnum, AccountStatusEnum, GenderEnum } from "../../enums";
+import { UserLevelEnum, AccountStatusEnum } from "../../enums";
 
 export interface IUser {
   firstName: string;
@@ -7,7 +7,7 @@ export interface IUser {
   email: string;
   password: string;
   phoneNumber: string;
-  profilePhoto: string | undefined;
+  imageUrl: string | undefined;
   confirmationCode: string | null;
   accountType: UserLevelEnum;
   status: AccountStatusEnum;
