@@ -81,7 +81,7 @@ userSchema.methods.generateResetPasswordToken = async function () {
 userSchema.methods.toJSON = function () {
   const userObject = this.toObject();
   delete userObject.password;
-  delete userObject.tokens;
+  delete userObject.confirmationCode;
   delete userObject.imageUrl;
   return userObject;
 };
