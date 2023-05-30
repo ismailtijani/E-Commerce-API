@@ -19,7 +19,7 @@ class AuthRoutes {
       authController.signup
     );
     this.router.get(
-      "/accountConfirmation",
+      "/accountConfirmation/:confirmationCode",
       validator(userValidatorSchema.confirmAccount, "params"),
       authController.confirmAccount
     );
@@ -38,16 +38,13 @@ class AuthRoutes {
     );
     this.router.post(
       "/reset_password/:token",
+      validator(userValidatorSchema.confirmAccount, "params"),
       validator(userValidatorSchema.resetPassword, "body"),
       authController.resetPassword
     );
-    this.router.delete("/delete", authController.deleteProfile);
+    this.router.delete("/deleteAccount", authController.deleteProfile);
   }
 }
 
-// Register User routes in App
-const userRouter = (app: Application) => {
-  app.use("/user", new AuthRoutes().router);
-};
-
-export default AuthRoutes;
+const AuthRouter = new AuthRoutes().router;
+export default AuthRouter;

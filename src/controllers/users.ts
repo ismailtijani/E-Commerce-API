@@ -95,7 +95,7 @@ export default class Controller {
           message: "Invalid update!",
           statusCode: responseStatusCodes.BAD_REQUEST,
         });
-      const allowedUpdates = ["firstName", "lastName", "email", "phoneNumber", "password"];
+      const allowedUpdates = ["firstName", "lastName", "phoneNumber", "password"];
       const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
       if (!isValidOperation)
         throw new AppError({

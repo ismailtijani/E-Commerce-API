@@ -55,6 +55,17 @@ const userValidatorSchema = {
   //   }),
   // }),
 
+  update: Joi.object().keys({
+    firstName: Joi.string().min(3),
+    lastName: Joi.string().min(3),
+    phoneNumber: Joi.string(),
+    password: Joi.string().min(8).regex(strongPasswordRegex).messages({
+      "string.min": "Must have at least 8 characters",
+      "object.regex": "Must have at least 8 characters",
+      "string.pattern.base": stringPassswordError,
+    }),
+  }),
+
   resetPassword: Joi.object().keys({
     password: Joi.string().min(8).regex(strongPasswordRegex).required().messages({
       "string.min": "Must have at least 8 characters",
@@ -62,10 +73,10 @@ const userValidatorSchema = {
       "string.pattern.base": stringPassswordError,
     }),
 
-    token: Joi.string().length(20).required().messages({
-      "string.length": "Invalid token",
-      "string.required": "Token is required",
-    }),
+    // token: Joi.string().length(20).required().messages({
+    //   "string.length": "Invalid token",
+    //   "string.required": "Token is required",
+    // }),
   }),
 
   forgetPassword: Joi.object().keys({

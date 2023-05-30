@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import Logger from "../utils/logger";
 import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
+import AuthRouter from "../routes/auth";
+import userRouter from "../routes/users";
 
 dotenv.config();
 
@@ -15,16 +17,13 @@ class App {
       ? `mongodb://127.0.0.1/${Environment.getDbName()}`
       : (process.env.MONGODB_URL as string);
 
-  //   private userRoutes: UserRoutes = new UserRoutes();
-  //   private commonRoutes: CommonRoutes = new CommonRoutes();
-
   constructor() {
     this.app = express();
     this.config();
     this.mongoSetup();
 
     // every other routes must come above the commonroutes
-    //  this.authRoutes.route(this.app);
+    //  this.authRoutes.router();
     //  this.userRoutes.route(this.app);
     //  this.jobRoutes.route(this.app);
     //  this.commonRoutes.route(this.app);
@@ -46,7 +45,8 @@ class App {
     this.app.get("/", (req, res) => {
       res.status(200).json({ message: "Welcome to Kimbali_Store API" });
     });
-
+    this.app.use("/account", AuthRouter);
+    this.app.use("/user", userRouter);
     // set up global error handling here
     this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       errorHandler.handleError(error, res);
