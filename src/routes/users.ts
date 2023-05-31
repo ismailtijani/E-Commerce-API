@@ -15,11 +15,11 @@ class UserRoutes {
 
   protected registeredRoutes() {
     //Every routes below will require authentication
-    this.router.use(auth);
+    this.router.use(auth.middleware);
     this.router.get("/profile", userController.readProfile);
     this.router.post(
       "/profile/upload_photo",
-      upload.single("image"),
+      upload().single("image"),
       userController.updateProfilePhoto
     );
     this.router.get("/profile/view_photo/:filename", userController.viewProfilePhoto);

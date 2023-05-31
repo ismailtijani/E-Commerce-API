@@ -18,7 +18,7 @@ function validator(schema: ObjectSchema, property: keyof Request) {
       Logger.error(`${error.name}: ${error.message}`);
       throw new AppError({
         message,
-        statusCode: responseStatusCodes.UNPROCESSABLE,
+        statusCode: responseStatusCodes.BAD_REQUEST,
       });
     }
   };

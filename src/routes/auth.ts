@@ -29,7 +29,7 @@ class AuthRoutes {
       authController.loginAccess
     );
     //Every routes below will require authentication
-    this.router.use(auth);
+    this.router.use(auth.middleware);
     this.router.post("/logout", authController.logout);
     this.router.post(
       "/forget_password",

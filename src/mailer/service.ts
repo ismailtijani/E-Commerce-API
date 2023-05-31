@@ -61,7 +61,7 @@ class MailService {
   }
 
   public async send2FAAuthCode(params: IMailParams) {
-    const html = authCodeTemplate({ name: params.name, code: params.token });
+    const html = authCodeTemplate({ name: params.name as string, code: params.token as string });
     let success = true;
     try {
       await this.transporter.verify();
