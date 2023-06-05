@@ -6,9 +6,9 @@ const stringPassswordError =
 
 const userValidatorSchema = {
   signup: Joi.object().keys({
-    firstName: Joi.string().min(3).required(),
-    lastName: Joi.string().min(3).required(),
-    email: Joi.string().email().required(),
+    firstName: Joi.string().min(3).required().message("FirstName must be provided"),
+    lastName: Joi.string().min(3).required().message("LastName must be provided"),
+    email: Joi.string().email().required().message("Must be a valid email"),
     phoneNumber: Joi.string().required(),
     password: Joi.string().min(8).regex(strongPasswordRegex).required().messages({
       "string.min": "Must have at least 8 characters",
@@ -43,17 +43,17 @@ const userValidatorSchema = {
       "string.required": "Params Id cannot be empty",
     }),
   }),
-  // verifyAuthToken: Joi.object().keys({
-  //   code: Joi.string().length(6).required().messages({
-  //     "string.length": "Invalid Params Id",
-  //     "string.required": "Params Id cannot be empty",
-  //   }),
-  // }),
-  // verifyForgotPasswordToken: Joi.object().keys({
-  //   token: Joi.string().required().messages({
-  //     "string.required": "Token is required",
-  //   }),
-  // }),
+  verifyAuthToken: Joi.object().keys({
+    code: Joi.string().length(6).required().messages({
+      "string.length": "Invalid Params Id",
+      "string.required": "Params Id cannot be empty",
+    }),
+  }),
+  verifyForgotPasswordToken: Joi.object().keys({
+    token: Joi.string().required().messages({
+      "string.required": "Token is required",
+    }),
+  }),
 
   update: Joi.object().keys({
     firstName: Joi.string().min(3),
@@ -72,11 +72,6 @@ const userValidatorSchema = {
       "object.regex": "Must have at least 8 characters",
       "string.pattern.base": stringPassswordError,
     }),
-
-    // token: Joi.string().length(20).required().messages({
-    //   "string.length": "Invalid token",
-    //   "string.required": "Token is required",
-    // }),
   }),
 
   forgetPassword: Joi.object().keys({
