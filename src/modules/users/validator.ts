@@ -6,9 +6,9 @@ const stringPassswordError =
 
 const userValidatorSchema = {
   signup: Joi.object().keys({
-    firstName: Joi.string().min(3).required().message("FirstName must be provided"),
-    lastName: Joi.string().min(3).required().message("LastName must be provided"),
-    email: Joi.string().email().required().message("Must be a valid email"),
+    firstName: Joi.string().min(3).required(),
+    lastName: Joi.string().min(3).required(),
+    email: Joi.string().email().required(),
     phoneNumber: Joi.string().required(),
     password: Joi.string().min(8).regex(strongPasswordRegex).required().messages({
       "string.min": "Must have at least 8 characters",
@@ -34,7 +34,7 @@ const userValidatorSchema = {
   }),
 
   fileAccess: Joi.object().keys({
-    filename: Joi.string().required().message("Filename must be provided"),
+    filename: Joi.string().required(),
   }),
 
   verifyParamsId: Joi.object().keys({
@@ -75,7 +75,7 @@ const userValidatorSchema = {
   }),
 
   forgetPassword: Joi.object().keys({
-    email: Joi.string().email().required().message("Email must be provided"),
+    email: Joi.string().email().required(),
   }),
 };
 
