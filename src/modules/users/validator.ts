@@ -6,7 +6,7 @@ const stringPassswordError =
 
 const userValidatorSchema = {
   signup: Joi.object().keys({
-    firstName: Joi.string().min(3).required(),
+    firstName: Joi.string().min(3).required().messages({}),
     lastName: Joi.string().min(3).required(),
     email: Joi.string().email().required(),
     phoneNumber: Joi.string().required(),
