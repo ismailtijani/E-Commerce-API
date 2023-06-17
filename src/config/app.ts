@@ -21,12 +21,6 @@ class App {
     this.app = express();
     this.config();
     this.mongoSetup();
-
-    // every other routes must come above the commonroutes
-    //  this.authRoutes.router();
-    //  this.userRoutes.route(this.app);
-    //  this.jobRoutes.route(this.app);
-    //  this.commonRoutes.route(this.app);
   }
 
   private config() {

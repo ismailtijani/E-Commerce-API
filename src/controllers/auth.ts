@@ -10,6 +10,7 @@ import { RequestHandler } from "express";
 import AppError from "../utils/errorClass";
 import { responseStatusCodes } from "../utils/interfaces";
 import { responseHelper } from "../utils/responseHelper";
+import Logger from "../utils/logger";
 
 export default class Controller {
   static signup: RequestHandler = async (req, res, next) => {
@@ -37,15 +38,15 @@ export default class Controller {
       user.confirmationCode = token;
       await user.save();
       // Send Confirmation Message to new user
-      const status = MailService.sendAccountActivationCode({ email, token });
+      MailService.sendAccountActivationCode({ email, token });
 
-      if (!status) {
-        await User.deleteOne({ email });
-        throw new AppError({
-          message: "Mailer Service Error, kindly try again!",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-      }
+      // if (!status) {
+      //   await User.deleteOne({ email });
+      //   throw new AppError({
+      //     message: "Mailer Service Error, kindly try again!",
+      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+      //   });
+      // }
 
       responseHelper.createdResponse(res, "Account created successfuly!");
     } catch (error: any) {
@@ -72,7 +73,7 @@ export default class Controller {
         });
 
       const updateData = { status: AccountStatusEnum.ACTIVATED, confirmationCode: null };
-      const updatedData = User.findOneAndUpdate({ _id: user._id }, updateData, {
+      const updatedData = await User.findOneAndUpdate({ _id: user._id }, updateData, {
         new: true,
         runValidators: true,
       });
@@ -124,12 +125,12 @@ export default class Controller {
         token: confirmationCode,
         email,
       });
-      if (!status) {
-        throw new AppError({
-          message: " An Error occured, kindly try again!",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-      }
+      // if (!status) {
+      //   throw new AppError({
+      //     message: " An Error occured, kindly try again!",
+      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+      //   });
+      // }
 
       responseHelper.successResponse(res, `2Factor Code sent to ${email} `, { _id });
     } catch (error) {

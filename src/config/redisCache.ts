@@ -29,10 +29,13 @@ class RedisCache {
 
   private RedisServerConnection = async () => {
     this.client.on("error", (error) => {
-      Logger.error("Redis Client Error");
+      Logger.error(`Redis Client Error(${error.name}: ${error.message})`);
     });
-    await this.client.connect();
-    this.client.on("connection", () => (this.isClientReady = true));
+    this.client.connect();
+    this.client.on("connect", () => {
+      Logger.info("Redis connection successful");
+      this.isClientReady = true;
+    });
   };
 
   public async set<T>(key: string, value: T, expT?: number) {

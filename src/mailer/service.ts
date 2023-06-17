@@ -17,15 +17,18 @@ import Logger from "../utils/logger";
 dotenv.config();
 
 const transporter: Transporter = createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  service: "gmail",
+  // host: "smtp.gmail.com",
+  // port: 465,
+  // port: 587,
+  // secure: false,
   auth: {
-    type: "OAuth2",
+    // type: "OAuth2",
     user: process.env.USER_GMAIL,
-    clientId: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    refreshToken: process.env.USER_GMAIL_REFRESH_TOKEN,
+    pass: process.env.USER_PASSWORD,
+    // clientId: process.env.GOOGLE_CLIENT_ID,
+    // clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    // refreshToken: process.env.USER_GMAIL_REFRESH_TOKEN,
   },
 });
 
@@ -49,13 +52,15 @@ class MailService {
         (error) => {
           if (error) {
             success = false;
+            Logger.error(error);
             Logger.error(`Account confirmation code Email to ${params.email} failed!!`);
           }
         }
       );
     } catch (error: any) {
       success = false;
-      Logger.error(`Mail Service Error!: ${error.name}`);
+      Logger.error(`Mail Service Error!`);
+      Logger.error(error);
     }
     return success;
   }

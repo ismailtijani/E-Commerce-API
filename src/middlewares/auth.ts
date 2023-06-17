@@ -45,35 +45,43 @@ export default class Authentication {
     }
   }
 
-  static async generateAuthToken(_id: string) {
+  static async generateAuthToken(_id: string, next: NextFunction) {
+    Logger.info(_id);
+    Logger.info(JWT_SECRET);
     let code = "";
-    jwt.sign(
-      { _id },
-      JWT_SECRET,
-      {
-        expiresIn: process.env.TOKEN_VALIDATION_DURATION,
-      },
-      async (error, token) => {
-        if (error) {
-          Logger.error("JWT Error, couldn't generate token");
-          throw new AppError({
-            message: "An error occured, please try again",
-            statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-          });
+    try {
+      jwt.sign(
+        { _id },
+        JWT_SECRET,
+        {
+          expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+        },
+        async (error, token) => {
+          Logger.info(token!);
+          if (error) {
+            Logger.error("JWT Error, couldn't generate token");
+            throw new AppError({
+              message: "An error occured, please try again",
+              statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+            });
+          }
+
+          const ttl = 7 * 24 * 60 * 60;
+          const response = await RedisCache.set(ACCESS_TOKEN + _id, { token }, ttl);
+          if (!response)
+            throw new AppError({
+              message: "An Error occured, Please try again",
+              statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+            });
+
+          code = token as string;
         }
-
-        const ttl = 7 * 24 * 60 * 60;
-        const response = await RedisCache.set(ACCESS_TOKEN + _id, { token }, ttl);
-        if (!response)
-          throw new AppError({
-            message: "An Error occured, Please try again",
-            statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-          });
-
-        code = token as string;
-      }
-    );
-    return code;
+      );
+      Logger.info(code);
+      return code;
+    } catch (error) {
+      next(error);
+    }
   }
 
   static generateConfirmationCode() {
@@ -94,7 +102,10 @@ export default class Authentication {
           statusCode: responseStatusCodes.NOT_FOUND,
         });
       if (authToken !== confirmationCode)
-        throw new AppError({ message: "Forbidden!", statusCode: responseStatusCodes.FORBIDDEN });
+        throw new AppError({
+          message: "Invalid code",
+          statusCode: responseStatusCodes.FORBIDDEN,
+        });
       const response = await RedisCache.del(AUTH_PREFIX + _id);
       if (!response)
         throw new AppError({
@@ -103,17 +114,17 @@ export default class Authentication {
         });
 
       const user = await User.findById(_id);
-      if (!user) {
-        throw new AppError({
-          message: "User not found!",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
-      }
+      // if (!user) {
+      //   throw new AppError({
+      //     message: "User not found!",
+      //     statusCode: responseStatusCodes.BAD_REQUEST,
+      //   });
+      // }
       // Generate AuthToken
-      const token = await this.generateAuthToken(_id);
+      const token = await this.generateAuthToken(_id, next);
 
       //Add user and token to request
-      req.user = user;
+      req.user = user!;
       req.token = token;
       next();
     } catch (error) {

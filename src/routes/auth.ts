@@ -1,4 +1,4 @@
-import { Application, Router } from "express";
+import { Router } from "express";
 import userValidatorSchema from "../modules/users/validator";
 import validator from "../middlewares/validator";
 import authController from "../controllers/auth";
@@ -28,6 +28,7 @@ class AuthRoutes {
       validator(userValidatorSchema.login, "body"),
       authController.loginAccess
     );
+    this.router.post("/login_success/:_id", auth.tokenVerification, authController.loginSuccess);
     //Every routes below will require authentication
     this.router.use(auth.middleware);
     this.router.post("/logout", authController.logout);

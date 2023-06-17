@@ -6,13 +6,32 @@ const stringPassswordError =
 
 const userValidatorSchema = {
   signup: Joi.object().keys({
-    firstName: Joi.string().min(3).required().messages({}),
-    lastName: Joi.string().min(3).required(),
-    email: Joi.string().email().required(),
-    phoneNumber: Joi.string().required(),
-    password: Joi.string().min(8).regex(strongPasswordRegex).required().messages({
-      "string.min": "Must have at least 8 characters",
-      "object.regex": "Must have at least 8 characters",
+    firstName: Joi.string().required().messages({
+      "string.empty": "First name cannot be an empty",
+      "any.required": "First name is required",
+      "string.base": "First name must be a string",
+    }),
+    lastName: Joi.string().required().messages({
+      "string.empty": "Last name cannot be empty",
+      "any.required": "Last name is required",
+      "string.base": "Last name must be a string",
+    }),
+    email: Joi.string().email().required().messages({
+      "string.email": "Invalid email format",
+      "string.empty": "Email cannot be empty",
+      "string.base": "Email must be a string",
+      "any.required": "Email is required",
+    }),
+    phoneNumber: Joi.string()
+      .pattern(/^[0-9]{11}$/) // Assuming a 11-digit phone number format
+      .required()
+      .messages({
+        "string.base": "Phone number must be a string",
+        "string.pattern.base": "Invalid phone number format",
+        "string.empty": "Phone number is required",
+        "any.required": "Phone number is required",
+      }),
+    password: Joi.string().regex(strongPasswordRegex).required().messages({
       "string.pattern.base": stringPassswordError,
     }),
   }),
@@ -27,9 +46,8 @@ const userValidatorSchema = {
   }),
 
   confirmAccount: Joi.object().keys({
-    confirmationCode: Joi.string().length(20).required().messages({
-      "string.min": "Invalid Confirmation Code",
-      "string.required": "Confirmation Code cannot be empty",
+    confirmationCode: Joi.string().required().messages({
+      "string.required": "Invalid Confirmation Code",
     }),
   }),
 
