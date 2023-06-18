@@ -108,29 +108,19 @@ export default class Controller {
       const confirmationCode = Authentication.generateConfirmationCode();
       const codeExpiration = 15 * 60;
       //   Store code in redis
-      const response = await RedisCache.set(
-        AUTH_PREFIX + _id,
-        { confirmationCode },
-        codeExpiration
-      );
-      if (!response)
-        throw new AppError({
-          message: "An Error occured, Please try again",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
+      await RedisCache.set(AUTH_PREFIX + _id, { confirmationCode }, codeExpiration);
+      // if (!response)
+      //   throw new AppError({
+      //     message: "An Error occured, Please try again",
+      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+      //   });
 
       //Send 2FAuth code to user
-      const status = MailService.send2FAAuthCode({
+      MailService.send2FAAuthCode({
         name: firstName,
         token: confirmationCode,
         email,
       });
-      // if (!status) {
-      //   throw new AppError({
-      //     message: " An Error occured, kindly try again!",
-      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-      //   });
-      // }
 
       responseHelper.successResponse(res, `2Factor Code sent to ${email} `, { _id });
     } catch (error) {
@@ -151,13 +141,9 @@ export default class Controller {
   static logout: RequestHandler = async (req, res, next) => {
     try {
       //Delete the user token from redis
-      const response = await RedisCache.del(ACCESS_TOKEN + req.user._id);
-      if (response)
-        throw new AppError({
-          message: "Error signing out, Please try again",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-      responseHelper.successResponse(res, "You've successfully logged out of this system");
+      await RedisCache.del(ACCESS_TOKEN + req.user._id);
+
+      responseHelper.successResponse(res, "You have successfully logged out of this system");
     } catch (error) {
       next(error);
     }
@@ -186,14 +172,14 @@ export default class Controller {
         email,
       });
 
-      if (!status) {
-        user.resetPasswordExpire = undefined;
-        user.resetPasswordToken = undefined;
-        throw new AppError({
-          message: `Password reset Email to ${email} failed, Please try again later`,
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-      }
+      // if (!status) {
+      //   user.resetPasswordExpire = undefined;
+      //   user.resetPasswordToken = undefined;
+      //   throw new AppError({
+      //     message: `Password reset Email to ${email} failed, Please try again later`,
+      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
+      //   });
+      // }
 
       return responseHelper.successResponse(
         res,

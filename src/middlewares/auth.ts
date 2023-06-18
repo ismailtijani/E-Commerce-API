@@ -10,75 +10,51 @@ import Logger from "../utils/logger";
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
     // Get token from headers
-    const token = req.header("Authorization")?.replace("Bearer ", "");
+    const accessToken = req.header("Authorization")?.replace("Bearer ", "");
 
     try {
-      if (!token)
+      if (!accessToken)
         throw new AppError({
           message: "Please Authenticate",
           statusCode: responseStatusCodes.UNAUTHORIZED,
         });
-      //   Verify Token
-      jwt.verify(token, JWT_SECRET, async (error, decoded) => {
-        if (error)
-          throw new AppError({
-            message: "Invalid or expired token",
-            statusCode: responseStatusCodes.UNAUTHORIZED,
-          });
 
-        const { _id } = decoded as { _id: string };
-        //   Get user from database
-        const user = await User.findById({ _id });
+      // Verify Token
+      const { _id } = <IPayload>jwt.verify(accessToken, JWT_SECRET);
 
-        if (!user)
-          throw new AppError({
-            message: "Please Authenticate",
-            statusCode: responseStatusCodes.UNAUTHORIZED,
-          });
-        // Add user to request
-        req.user = user;
-        req.token = token;
-        next();
-      });
+      //Check if token still lives
+      const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
+      if (!token)
+        throw new AppError({
+          message: "Please Authenticate",
+          statusCode: responseStatusCodes.BAD_REQUEST,
+        });
+
+      // Get user from database
+      const user = await User.findById({ _id });
+      // Add user to request
+      req.user = user!;
+      req.token = accessToken;
+      next();
     } catch (error: any) {
+      if (error.name === "JsonWebTokenError")
+        return res.status(responseStatusCodes.BAD_REQUEST).json({
+          STATUS: "FAILURE",
+          ERROR: "Invalid or expired token",
+        });
       next(error);
     }
   }
 
   static async generateAuthToken(_id: string, next: NextFunction) {
-    Logger.info(_id);
-    Logger.info(JWT_SECRET);
-    let code = "";
     try {
-      jwt.sign(
-        { _id },
-        JWT_SECRET,
-        {
-          expiresIn: process.env.TOKEN_VALIDATION_DURATION,
-        },
-        async (error, token) => {
-          Logger.info(token!);
-          if (error) {
-            Logger.error("JWT Error, couldn't generate token");
-            throw new AppError({
-              message: "An error occured, please try again",
-              statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-            });
-          }
-
-          const ttl = 7 * 24 * 60 * 60;
-          const response = await RedisCache.set(ACCESS_TOKEN + _id, { token }, ttl);
-          if (!response)
-            throw new AppError({
-              message: "An Error occured, Please try again",
-              statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-            });
-
-          code = token as string;
-        }
-      );
-      Logger.info(code);
-      return code;
+      const token = jwt.sign({ _id }, JWT_SECRET, {
+        expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+      });
+      //Time to live
+      const ttl = 7 * 24 * 60 * 60;
+      await RedisCache.set(ACCESS_TOKEN + _id, { token }, ttl);
+      return token;
     } catch (error) {
       next(error);
     }
@@ -104,25 +80,14 @@ export default class Authentication {
       if (authToken !== confirmationCode)
         throw new AppError({
           message: "Invalid code",
-          statusCode: responseStatusCodes.FORBIDDEN,
+          statusCode: responseStatusCodes.BAD_REQUEST,
         });
-      const response = await RedisCache.del(AUTH_PREFIX + _id);
-      if (!response)
-        throw new AppError({
-          message: "Error logging in, Please try again",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
-
+      //Delete Confirmation code
+      await RedisCache.del(AUTH_PREFIX + _id);
+      // Fetch user data
       const user = await User.findById(_id);
-      // if (!user) {
-      //   throw new AppError({
-      //     message: "User not found!",
-      //     statusCode: responseStatusCodes.BAD_REQUEST,
-      //   });
-      // }
       // Generate AuthToken
       const token = await this.generateAuthToken(_id, next);
-
       //Add user and token to request
       req.user = user!;
       req.token = token;
@@ -135,3 +100,7 @@ export default class Authentication {
 
 // Fectching JsonwebToken secret
 const JWT_SECRET = process.env.JWT_SECRET as string;
+
+interface IPayload {
+  _id: string;
+}
