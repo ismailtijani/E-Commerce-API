@@ -10,7 +10,6 @@ import { RequestHandler } from "express";
 import AppError from "../utils/errorClass";
 import { responseStatusCodes } from "../utils/interfaces";
 import { responseHelper } from "../utils/responseHelper";
-import Logger from "../utils/logger";
 
 export default class Controller {
   static signup: RequestHandler = async (req, res, next) => {
@@ -33,20 +32,11 @@ export default class Controller {
       //Create User account
       const user = await User.create(req.body);
       //Generate auth token
-      // const token = await user.generateAuthToken();
       const token = crypto.randomBytes(20).toString("hex");
       user.confirmationCode = token;
       await user.save();
       // Send Confirmation Message to new user
       MailService.sendAccountActivationCode({ email, token });
-
-      // if (!status) {
-      //   await User.deleteOne({ email });
-      //   throw new AppError({
-      //     message: "Mailer Service Error, kindly try again!",
-      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-      //   });
-      // }
 
       responseHelper.createdResponse(res, "Account created successfuly!");
     } catch (error: any) {
@@ -82,7 +72,6 @@ export default class Controller {
           message: "Account Activation failed!, Please try again",
           statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
         });
-
       //Send Account confirmation Success mail
       MailService.sendAccountSuccessEmail({ email: user.email });
 
@@ -109,12 +98,6 @@ export default class Controller {
       const codeExpiration = 15 * 60;
       //   Store code in redis
       await RedisCache.set(AUTH_PREFIX + _id, { confirmationCode }, codeExpiration);
-      // if (!response)
-      //   throw new AppError({
-      //     message: "An Error occured, Please try again",
-      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-      //   });
-
       //Send 2FAuth code to user
       MailService.send2FAAuthCode({
         name: firstName,
@@ -158,11 +141,8 @@ export default class Controller {
         message: "Sorry, we don't recognize this account",
         statusCode: responseStatusCodes.BAD_REQUEST,
       });
-
     //Generate reset Password Token
     const resetToken = await user.generateResetPasswordToken();
-    // Create reset url
-    // const resetURl = `${req.protocol}://${req.get("host")}/forget_password/${resetToken}`;
 
     try {
       // Send reset URL to user via Mail
@@ -171,15 +151,6 @@ export default class Controller {
         token: resetToken,
         email,
       });
-
-      // if (!status) {
-      //   user.resetPasswordExpire = undefined;
-      //   user.resetPasswordToken = undefined;
-      //   throw new AppError({
-      //     message: `Password reset Email to ${email} failed, Please try again later`,
-      //     statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-      //   });
-      // }
 
       return responseHelper.successResponse(
         res,

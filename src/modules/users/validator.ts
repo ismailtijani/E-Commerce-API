@@ -32,6 +32,7 @@ const userValidatorSchema = {
         "any.required": "Phone number is required",
       }),
     password: Joi.string().regex(strongPasswordRegex).required().messages({
+      "string.empty": "Password is required",
       "string.pattern.base": stringPassswordError,
     }),
   }),
@@ -77,17 +78,15 @@ const userValidatorSchema = {
     firstName: Joi.string().min(3),
     lastName: Joi.string().min(3),
     phoneNumber: Joi.string(),
-    password: Joi.string().min(8).regex(strongPasswordRegex).messages({
-      "string.min": "Must have at least 8 characters",
-      "object.regex": "Must have at least 8 characters",
+    password: Joi.string().regex(strongPasswordRegex).required().messages({
+      "string.empty": "Password is required",
       "string.pattern.base": stringPassswordError,
     }),
   }),
 
   resetPassword: Joi.object().keys({
-    password: Joi.string().min(8).regex(strongPasswordRegex).required().messages({
-      "string.min": "Must have at least 8 characters",
-      "object.regex": "Must have at least 8 characters",
+    password: Joi.string().regex(strongPasswordRegex).required().messages({
+      "string.empty": "Password is required",
       "string.pattern.base": stringPassswordError,
     }),
   }),

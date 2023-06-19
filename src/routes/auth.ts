@@ -29,9 +29,6 @@ class AuthRoutes {
       authController.loginAccess
     );
     this.router.post("/login_success/:_id", auth.tokenVerification, authController.loginSuccess);
-    //Every routes below will require authentication
-    this.router.use(auth.middleware);
-    this.router.post("/logout", authController.logout);
     this.router.post(
       "/forget_password",
       validator(userValidatorSchema.forgetPassword, "body"),
@@ -39,11 +36,14 @@ class AuthRoutes {
     );
     this.router.post(
       "/reset_password/:token",
-      validator(userValidatorSchema.confirmAccount, "params"),
+      validator(userValidatorSchema.verifyForgotPasswordToken, "params"),
       validator(userValidatorSchema.resetPassword, "body"),
       authController.resetPassword
     );
-    this.router.delete("/deleteAccount", authController.deleteProfile);
+    //Every routes below will require authentication
+    this.router.use(auth.middleware);
+    this.router.post("/logout", authController.logout);
+    this.router.delete("/delete_account", authController.deleteProfile);
   }
 }
 
