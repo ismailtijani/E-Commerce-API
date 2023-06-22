@@ -19,6 +19,7 @@ class UserRoutes {
     this.router.get("/profile", userController.readProfile);
     this.router.post(
       "/profile/upload_photo",
+      // validator(userValidatorSchema.profilePhoto, "body"),
       upload().single("image"),
       userController.updateProfilePhoto
     );

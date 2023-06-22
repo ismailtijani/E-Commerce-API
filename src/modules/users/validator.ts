@@ -74,11 +74,27 @@ const userValidatorSchema = {
     }),
   }),
 
+  profilePhoto: Joi.object().keys({
+    image: Joi.object().required(),
+  }),
+
   update: Joi.object().keys({
-    firstName: Joi.string().min(3),
-    lastName: Joi.string().min(3),
-    phoneNumber: Joi.string(),
-    password: Joi.string().regex(strongPasswordRegex).required().messages({
+    firstName: Joi.string().messages({
+      "string.empty": "First name cannot be an empty",
+      "string.base": "First name must be a string",
+    }),
+    lastName: Joi.string().messages({
+      "string.empty": "Last name cannot be empty",
+      "string.base": "Last name must be a string",
+    }),
+    phoneNumber: Joi.string()
+      .pattern(/^[0-9]{11}$/)
+      .messages({
+        "string.base": "Phone number must be a string",
+        "string.pattern.base": "Invalid phone number format",
+        "string.empty": "Phone number is required",
+      }),
+    password: Joi.string().regex(strongPasswordRegex).messages({
       "string.empty": "Password is required",
       "string.pattern.base": stringPassswordError,
     }),
