@@ -7,9 +7,8 @@ import Authentication from "../middlewares/auth";
 import User from "../modules/users/schema";
 import { IUser } from "../modules/users/interface";
 import { RequestHandler } from "express";
-import AppError from "../utils/errorClass";
-import { responseStatusCodes } from "../utils/interfaces";
 import { responseHelper } from "../utils/responseHelper";
+import BadRequestError from "../utils/errors/badRequest";
 
 export default class Controller {
   static signup: RequestHandler = async (req, res, next) => {
@@ -19,14 +18,12 @@ export default class Controller {
       const existingUser = await User.findOne({ email });
 
       if (existingUser && existingUser.status === AccountStatusEnum.PENDING) {
-        throw new AppError({
+        throw new BadRequestError({
           message: "An Account Already Exist with this details, kindly verify your account",
-          statusCode: responseStatusCodes.CONFLICT,
         });
       } else if (existingUser && existingUser.status === AccountStatusEnum.ACTIVATED) {
-        throw new AppError({
+        throw new BadRequestError({
           message: "User alredy exist, Kindly login or Rest your password",
-          statusCode: responseStatusCodes.CONFLICT,
         });
       }
       //Create User account
@@ -56,22 +53,13 @@ export default class Controller {
 
     try {
       const user = await User.findOne({ confirmationCode });
-      if (!user)
-        throw new AppError({
-          message: "Invalid or Expired confirmation code",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
+      if (!user) throw new BadRequestError({ message: "Invalid or Expired confirmation code" });
 
       const updateData = { status: AccountStatusEnum.ACTIVATED, confirmationCode: null };
-      const updatedData = await User.findOneAndUpdate({ _id: user._id }, updateData, {
+      await User.findOneAndUpdate({ _id: user._id }, updateData, {
         new: true,
         runValidators: true,
       });
-      if (!updatedData)
-        throw new AppError({
-          message: "Account Activation failed!, Please try again",
-          statusCode: responseStatusCodes.INTERNAL_SERVER_ERROR,
-        });
       //Send Account confirmation Success mail
       MailService.sendAccountSuccessEmail({ email: user.email });
 
@@ -136,17 +124,13 @@ export default class Controller {
     const { email } = req.body as { email: IUser["email"] };
     // Search for user Account
     const user = await User.findOne({ email });
-    if (!user)
-      throw new AppError({
-        message: "Sorry, we don't recognize this account",
-        statusCode: responseStatusCodes.BAD_REQUEST,
-      });
+    if (!user) throw new BadRequestError({ message: "Sorry, we don't recognize this account" });
     //Generate reset Password Token
     const resetToken = await user.generateResetPasswordToken();
 
     try {
       // Send reset URL to user via Mail
-      const status = MailService.sendPasswordReset({
+      MailService.sendPasswordReset({
         name: user.firstName,
         token: resetToken,
         email,
@@ -163,7 +147,6 @@ export default class Controller {
 
   static resetPassword: RequestHandler = async (req, res, next) => {
     const { token } = req.params;
-
     // Hash token
     const resetPasswordToken = crypto.createHash("sha256").update(token).digest("hex");
 
@@ -173,11 +156,7 @@ export default class Controller {
         resetPasswordExpire: { $gt: Date.now() },
       });
 
-      if (!user)
-        throw new AppError({
-          message: "Invalid or Expired Token",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
+      if (!user) throw new BadRequestError({ message: "Invalid or Expired Token" });
       // Set new password
       user.password = req.body.password;
       user.resetPasswordToken = undefined;

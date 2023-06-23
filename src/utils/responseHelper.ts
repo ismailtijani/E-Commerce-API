@@ -1,9 +1,9 @@
 import { Response } from "express";
-import { responseStatusCodes, Info } from "./interfaces";
+import { statusCodes, Info } from "./interfaces";
 
 export class responseHelper {
   public static successResponse(res: Response, message?: string, DATA?: Info) {
-    res.status(responseStatusCodes.SUCCESS).json({
+    res.status(statusCodes.SUCCESS).json({
       STATUS: "SUCCESS",
       MESSAGE: message,
       DATA,
@@ -11,7 +11,7 @@ export class responseHelper {
   }
 
   public static createdResponse(res: Response, message?: string, DATA?: Info) {
-    res.status(responseStatusCodes.CREATED).json({
+    res.status(statusCodes.CREATED).json({
       STATUS: "SUCCESS",
       MESSAGE: message,
       DATA,

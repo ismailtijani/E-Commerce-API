@@ -14,10 +14,9 @@ export type Info = string | object;
 export interface AppErrorArgs {
   name?: string;
   message: string;
-  statusCode: responseStatusCodes;
 }
 
-export enum responseStatusCodes {
+export enum statusCodes {
   SUCCESS = 200,
   CREATED = 201,
   NO_CONTENT = 204,

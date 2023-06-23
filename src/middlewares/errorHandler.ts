@@ -1,7 +1,10 @@
 import { Response } from "express";
 import Logger from "../utils/logger";
-import AppError from "../utils/errorClass";
-import { responseStatusCodes } from "../utils/interfaces";
+import AppError from "../utils/errors/appError";
+import { statusCodes } from "../utils/interfaces";
+import BadRequestError from "../utils/errors/badRequest";
+import UnAuthenticatedError from "../utils/errors/unauthenticated";
+import ServerError from "../utils/errors/serverError";
 
 export class ErrorHandler {
   private isTrustedError(error: Error | AppError) {
@@ -19,19 +22,28 @@ export class ErrorHandler {
     }
   }
   private handleTrustedError = (error: AppError, res: Response) => {
-    return res.status(error.statusCode).json({
-      STATUS: "FAILURE",
-      MESSAGE: error.message,
-    });
+    if (error instanceof BadRequestError) {
+      return res.status(error.statusCode).json({
+        STATUS: "FAILURE",
+        MESSAGE: error.message,
+      });
+    } else if (error instanceof UnAuthenticatedError) {
+      return res.status(error.statusCode).json({
+        STATUS: "FAILURE",
+        MESSAGE: error.message,
+      });
+    } else if (error instanceof ServerError) {
+      return res.status(error.statusCode).json({
+        STATUS: "FAILURE",
+        MESSAGE: error.message,
+      });
+    }
   };
   private handleCriticalError(error: Error, res?: Response) {
     if (res) {
-      res.status(responseStatusCodes.INTERNAL_SERVER_ERROR).json({
+      res.status(statusCodes.INTERNAL_SERVER_ERROR).json({
         STATUS: "FAILURE",
-        ERROR: {
-          name: error.name,
-          message: "Internal Server Error",
-        },
+        MESSAGE: "Internal Server Error",
       });
     }
     Logger.error(error);

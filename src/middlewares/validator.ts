@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Logger from "../utils/logger";
-import AppError from "../utils/errorClass";
-import { responseStatusCodes } from "../utils/interfaces";
 import { ObjectSchema, ValidationErrorItem } from "joi";
+import BadRequestError from "../utils/errors/badRequest";
 
 function validator(schema: ObjectSchema, property: keyof Request) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -16,10 +15,7 @@ function validator(schema: ObjectSchema, property: keyof Request) {
       const { details } = error;
       const message: string = details.map((i: ValidationErrorItem) => i.message).join(",");
       Logger.error(`${error.name}: ${error.message}`);
-      throw new AppError({
-        message,
-        statusCode: responseStatusCodes.BAD_REQUEST,
-      });
+      throw new BadRequestError({ message });
     }
   };
 }

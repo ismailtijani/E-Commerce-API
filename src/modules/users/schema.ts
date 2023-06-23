@@ -3,8 +3,9 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { UserLevelEnum, AccountStatusEnum } from "../../enums";
 import { IUser, IUserMethods, UserDocument, UserModel } from "./interface";
-import AppError from "../../utils/errorClass";
-import { responseStatusCodes } from "../../utils/interfaces";
+import AppError from "../../utils/errors/appError";
+import { statusCodes } from "../../utils/interfaces";
+import BadRequestError from "../../utils/errors/badRequest";
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
@@ -93,21 +94,13 @@ userSchema.statics.findByCredentials = async (
 ) => {
   const user = await User.findOne({ email });
   if (!user)
-    throw new AppError({
-      message: "No Account with this credentials, kindly signup",
-      statusCode: responseStatusCodes.NOT_FOUND,
-    });
+    throw new BadRequestError({ message: "No Account with this credentials, kindly signup" });
   if (user && user.status !== AccountStatusEnum.ACTIVATED)
-    throw new AppError({
+    throw new BadRequestError({
       message: "Account not activated, kindly check your mail for activation link",
-      statusCode: responseStatusCodes.UNPROCESSABLE,
     });
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch)
-    throw new AppError({
-      message: "Email or Password is incorrect",
-      statusCode: responseStatusCodes.BAD_REQUEST,
-    });
+  if (!isMatch) throw new BadRequestError({ message: "Email or Password is incorrect" });
   return user;
 };
 

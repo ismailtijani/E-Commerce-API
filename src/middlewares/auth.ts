@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
-import AppError from "../utils/errorClass";
 import jwt from "jsonwebtoken";
-import { responseStatusCodes } from "../utils/interfaces";
+import { statusCodes } from "../utils/interfaces";
 import User from "../modules/users/schema";
 import RedisCache from "../config/redisCache";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
-import Logger from "../utils/logger";
+import UnAuthenticatedError from "../utils/errors/unauthenticated";
+import BadRequestError from "../utils/errors/badRequest";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -13,22 +13,14 @@ export default class Authentication {
     const accessToken = req.header("Authorization")?.replace("Bearer ", "");
 
     try {
-      if (!accessToken)
-        throw new AppError({
-          message: "Please Authenticate",
-          statusCode: responseStatusCodes.UNAUTHORIZED,
-        });
+      if (!accessToken) throw new UnAuthenticatedError("Please Authenticate");
 
       // Verify Token
       const { _id } = <IPayload>jwt.verify(accessToken, JWT_SECRET);
 
       //Check if token still lives
       const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
-      if (!token)
-        throw new AppError({
-          message: "Please Authenticate",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
+      if (!token) throw new BadRequestError({ message: "Please Authenticate" });
 
       // Get user from database
       const user = await User.findById({ _id });
@@ -38,7 +30,7 @@ export default class Authentication {
       next();
     } catch (error: any) {
       if (error.name === "JsonWebTokenError")
-        return res.status(responseStatusCodes.BAD_REQUEST).json({
+        return res.status(statusCodes.BAD_REQUEST).json({
           STATUS: "FAILURE",
           ERROR: "Invalid or expired token",
         });
@@ -73,15 +65,9 @@ export default class Authentication {
       //Fetch and Validate 2FAuth token
       const { confirmationCode } = await RedisCache.get(AUTH_PREFIX + _id);
       if (!confirmationCode)
-        throw new AppError({
-          message: "Auth Code expired or does not exist",
-          statusCode: responseStatusCodes.NOT_FOUND,
-        });
-      if (authToken !== confirmationCode)
-        throw new AppError({
-          message: "Invalid code",
-          statusCode: responseStatusCodes.BAD_REQUEST,
-        });
+        throw new BadRequestError({ message: "Auth Code expired or does not exist" });
+
+      if (authToken !== confirmationCode) throw new BadRequestError({ message: "Invalid code" });
       //Delete Confirmation code
       await RedisCache.del(AUTH_PREFIX + _id);
       // Fetch user data
