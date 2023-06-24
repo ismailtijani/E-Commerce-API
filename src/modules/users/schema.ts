@@ -3,8 +3,6 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { UserLevelEnum, AccountStatusEnum } from "../../enums";
 import { IUser, IUserMethods, UserDocument, UserModel } from "./interface";
-import AppError from "../../utils/errors/appError";
-import { statusCodes } from "../../utils/interfaces";
 import BadRequestError from "../../utils/errors/badRequest";
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
@@ -108,7 +106,7 @@ userSchema.statics.findByCredentials = async (
 // userSchema.pre<UserDocument>("remove", async function (next) {
 //   await ModelName.deleteMany({ foreignField: this._id }); //Input model name and foreign field
 //   Logger.warn(
-//     `All transaction records created by ${this.name} has been deleted as the user deleted thier account`
+//     `All records created by ${this.name} has been deleted as the user deleted thier account`
 //   );
 //   next();
 // });

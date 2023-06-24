@@ -23,7 +23,7 @@ export default class Controller {
         });
       } else if (existingUser && existingUser.status === AccountStatusEnum.ACTIVATED) {
         throw new BadRequestError({
-          message: "User alredy exist, Kindly login or Rest your password",
+          message: "User alredy exist, Kindly login",
         });
       }
       //Create User account
@@ -37,13 +37,6 @@ export default class Controller {
 
       responseHelper.createdResponse(res, "Account created successfuly!");
     } catch (error: any) {
-      // if (error.name === "ValidationError") {
-      //   Logger.error(error);
-      //   return res
-      //     .status(responseStatusCodes.BAD_REQUEST)
-      //     .json({ name: error.name, message: error.message });
-      // }
-
       next(error);
     }
   };

@@ -1,6 +1,6 @@
 import { createTransport, Transporter } from "nodemailer";
 import { IMailParams } from "./interface";
-import dotenv from "dotenv";
+import "dotenv/config";
 import { ClientBaseUrl } from "../config/app";
 import accountSuccessMailTemplate from "./templates/accountSuccess";
 import authCodeTemplate from "./templates/authCode";
@@ -13,8 +13,6 @@ import {
   PASSWORD_RESET_HELP,
 } from "../constant";
 import Logger from "../utils/logger";
-
-dotenv.config();
 
 const transporter: Transporter = createTransport({
   service: "gmail",
@@ -57,10 +55,9 @@ class MailService {
           }
         }
       );
-    } catch (error: any) {
+    } catch (error) {
       success = false;
-      Logger.error(`Mail Service Error!`);
-      Logger.error(error);
+      Logger.error(`Mail Service Error!: ${error}`);
     }
     return success;
   }
@@ -84,9 +81,9 @@ class MailService {
           }
         }
       );
-    } catch (error: any) {
+    } catch (error) {
       success = false;
-      Logger.error(`Google Authentication Failed!: ${error.name}`);
+      Logger.error(`Google Authentication Failed!: ${error}`);
     }
     return success;
   }
@@ -110,9 +107,9 @@ class MailService {
           }
         }
       );
-    } catch (error: any) {
+    } catch (error) {
       success = false;
-      Logger.error(`Google Authentication Failed!: ${error.name}`);
+      Logger.error(`Google Authentication Failed!: ${error}`);
     }
     return success;
   }
@@ -136,7 +133,7 @@ class MailService {
           }
         }
       );
-    } catch (error: any) {
+    } catch (error) {
       success = false;
       Logger.error(`Google Authentication Failed ${error}`);
     }

@@ -6,6 +6,7 @@ import RedisCache from "../config/redisCache";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
+import { IUser, UserDocument } from "../modules/users/interface";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -13,7 +14,7 @@ export default class Authentication {
     const accessToken = req.header("Authorization")?.replace("Bearer ", "");
 
     try {
-      if (!accessToken) throw new UnAuthenticatedError("Please Authenticate");
+      if (!accessToken) throw new UnAuthenticatedError("Please Authenticate.");
 
       // Verify Token
       const { _id } = <IPayload>jwt.verify(accessToken, JWT_SECRET);
@@ -25,7 +26,7 @@ export default class Authentication {
       // Get user from database
       const user = await User.findById({ _id });
       // Add user to request
-      req.user = user!;
+      if (user) req.user = user;
       req.token = accessToken;
       next();
     } catch (error: any) {
@@ -75,7 +76,7 @@ export default class Authentication {
       // Generate AuthToken
       const token = await this.generateAuthToken(_id, next);
       //Add user and token to request
-      req.user = user!;
+      if (user) req.user = user;
       req.token = token;
       next();
     } catch (error) {

@@ -26,7 +26,7 @@ export default class Controller {
       }
       // Internal Server Error(Change statuscode)
       throw new BadRequestError({ message: "Failed to save user profile photo" });
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   };
@@ -86,6 +86,15 @@ export default class Controller {
       updates.forEach((update) => (user[update] = req.body[update]));
       await user.save();
       return responseHelper.successResponse(res, "Profile updated successfully✅");
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static deleteAccount: RequestHandler = async (req, res, next) => {
+    try {
+      await req.user?.deleteOne();
+      responseHelper.successResponse(res, "Account deleted successfully");
     } catch (error) {
       next(error);
     }

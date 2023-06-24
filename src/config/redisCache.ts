@@ -1,8 +1,6 @@
 import { createClient, RedisClientType } from "redis";
-import dotenv from "dotenv";
+import "dotenv/config";
 import Logger from "../utils/logger";
-
-dotenv.config();
 
 class RedisCache {
   private client: RedisClientType;

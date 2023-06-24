@@ -1,14 +1,12 @@
 import express, { Request, Response, Application, NextFunction } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
+import "dotenv/config";
 import mongoose from "mongoose";
 import Logger from "../utils/logger";
 import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
 import AuthRouter from "../routes/auth";
 import userRouter from "../routes/users";
-
-dotenv.config();
 
 class App {
   public app: Application;
