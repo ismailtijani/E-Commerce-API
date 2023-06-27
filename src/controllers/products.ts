@@ -89,21 +89,24 @@ export default class Controller {
     }
   };
 
-  // top 5 products by highest number of ratings
+  // Get top products by highest number of ratings,reviews and category
   static getTopProducts: RequestHandler = async (req, res, next) => {
     const sortField = req.query.sortField?.toString() || "rating";
-    const sortOrder = parseInt(req.query.sortOrder?.toString()) || -1;
-    const limit = parseInt(req.query.limit?.toString()) || 5;
-    const pipeline = [{ $sort: { [sortField]: sortOrder } }, { $limit: limit }];
+    const sortOrder = parseInt(req.query.sortOrder?.toString() as string) || -1;
+    const limit = parseInt(req.query.limit?.toString() as string) || 5;
+    // const pipeline = [{ $sort: { [sortField]: sortOrder } }, { $limit: limit }]
     try {
-      const products = await Product.aggregate(pipeline);
+      const products = await Product.aggregate([
+        { $sort: { [sortField]: sortOrder } as Record<string, -1 | 1> },
+        { $limit: limit },
+      ]);
       return responseHelper.successResponse(res, "Top products fecthed successfully", products);
     } catch (error) {
       next(error);
     }
   };
 }
-
+type c = 1 | -1;
 // A USER CAN VIEW THEIR TRANSACTION HISTORY.
 
 //GET /transaction/transaction_history?transaction_type=debit     ======>>>>> FILTER
