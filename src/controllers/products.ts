@@ -79,7 +79,29 @@ export default class Controller {
   };
 
   // delete a specific product by id (Admin and Vendor)
-  static deleteProduct: RequestHandler = (req, res, next) => {};
+  static deleteProduct: RequestHandler = async (req, res, next) => {
+    try {
+      const product = await Product.findByIdAndDelete(req.params._id);
+      if (!product) throw new BadRequestError({ message: "Product not found" });
+      return responseHelper.successResponse(res, "Producted deleted successfully");
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  // top 5 products by highest number of ratings
+  static getTopProducts: RequestHandler = async (req, res, next) => {
+    const sortField = req.query.sortField?.toString() || "rating";
+    const sortOrder = parseInt(req.query.sortOrder?.toString()) || -1;
+    const limit = parseInt(req.query.limit?.toString()) || 5;
+    const pipeline = [{ $sort: { [sortField]: sortOrder } }, { $limit: limit }];
+    try {
+      const products = await Product.aggregate(pipeline);
+      return responseHelper.successResponse(res, "Top products fecthed successfully", products);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 // A USER CAN VIEW THEIR TRANSACTION HISTORY.
