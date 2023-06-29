@@ -94,19 +94,39 @@ export default class Controller {
     const sortField = req.query.sortField?.toString() || "rating";
     const sortOrder = parseInt(req.query.sortOrder?.toString() as string) || -1;
     const limit = parseInt(req.query.limit?.toString() as string) || 5;
-    // const pipeline = [{ $sort: { [sortField]: sortOrder } }, { $limit: limit }]
+    const pipeline = [
+      { $sort: { [sortField]: sortOrder } as Record<string, -1 | 1> },
+      { $limit: limit },
+    ];
     try {
-      const products = await Product.aggregate([
-        { $sort: { [sortField]: sortOrder } as Record<string, -1 | 1> },
-        { $limit: limit },
-      ]);
+      const products = await Product.aggregate(pipeline);
       return responseHelper.successResponse(res, "Top products fecthed successfully", products);
     } catch (error) {
       next(error);
     }
   };
+
+  // advance search for products
+  static advanceSearch: RequestHandler = async (req, res, next) => {
+    const { name, category } = req.params;
+    try {
+      const product = await Product.find({
+        name: {
+          $regex: name,
+          $options: "i",
+        },
+        category: {
+          $regex: category,
+          $options: "i",
+        },
+      });
+      responseHelper.successResponse(res, "Product fetched successfully", product);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
-type c = 1 | -1;
+
 // A USER CAN VIEW THEIR TRANSACTION HISTORY.
 
 //GET /transaction/transaction_history?transaction_type=debit     ======>>>>> FILTER
