@@ -28,3 +28,10 @@ export enum RatingEnum {
   FOUR = 4,
   FIVE = 5,
 }
+
+// type IMatch = {
+//   rating: RatingEnum;
+//   category: CategoryEnum;
+// };
+
+export type Sort = { [key: string]: number };

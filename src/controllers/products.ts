@@ -3,6 +3,7 @@ import Product from "../modules/products/schema";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import ServerError from "../utils/errors/serverError";
+import { Sort } from "../modules/products/interface";
 
 export default class Controller {
   // create a new product by registered user
@@ -38,10 +39,37 @@ export default class Controller {
     }
   };
 
-  // get all products uploaded by a specific user (Vendor)
+  // GET ALL PRODUCTS UPLOADED BY A SPECIFIC USER (Vendor)
+
+  //GET /products?category=electronics     ======>>>>> FILTER
+  //GET /products?limit=2&skip=2             ======>>>>> PAGINATION
+  //GET /products?sortBy=createdAt:desc      ======>>>>> SORT
   static getProductsByUser: RequestHandler = async (req, res, next) => {
-    const products = await Product.find({ seller: req.params._id });
-    return responseHelper.successResponse(res, "All products fetched", products);
+    const sort: Sort = {};
+    if (req.query.sortBy) {
+      const splitted = (req.query.sortBy as string).split(":");
+      sort[splitted[0] as keyof typeof sort] = splitted[1] === "desc" ? -1 : 1;
+    }
+    try {
+      await req.user?.populate({
+        path: "products",
+        options: {
+          limit: parseInt(req.query.limit as string),
+          skip: parseInt(req.query.skip as string),
+          sort,
+        },
+      });
+
+      //Get all user products
+      const products = req.user?.products;
+
+      if (products?.length === 0)
+        throw new BadRequestError({ message: "No product found, do upload some products 😊" });
+
+      return responseHelper.successResponse(res, "All products fetched", products);
+    } catch (error) {
+      next(error);
+    }
   };
 
   // get a specific product by id
@@ -89,7 +117,7 @@ export default class Controller {
     }
   };
 
-  // Get top products by highest number of ratings,reviews and category
+  // Get top products by highest number of ratings and review (Admin & Vendor)
   static getTopProducts: RequestHandler = async (req, res, next) => {
     const sortField = req.query.sortField?.toString() || "rating";
     const sortOrder = parseInt(req.query.sortOrder?.toString() as string) || -1;
@@ -106,7 +134,7 @@ export default class Controller {
     }
   };
 
-  // advance search for products
+  // advance search for products (Admin & Vendor)
   static advanceSearch: RequestHandler = async (req, res, next) => {
     const { name, category } = req.params;
     try {
@@ -120,6 +148,7 @@ export default class Controller {
           $options: "i",
         },
       });
+      if (!product) throw new BadRequestError({ message: "Product not found" });
       responseHelper.successResponse(res, "Product fetched successfully", product);
     } catch (error) {
       next(error);
@@ -132,40 +161,3 @@ export default class Controller {
 //GET /transaction/transaction_history?transaction_type=debit     ======>>>>> FILTER
 //GET /transaction/transaction_history?limit=2&skip=2             ======>>>>> PAGINATION
 //GET /transaction/transaction_history?sortBy=createdAt:desc      ======>>>>> SORT
-// static viewTransactionHistory: RequestHandler = async (req, res, next) => {
-//   const match = {} as IMatch;
-//   const sort: Sort = {};
-
-//   //Check if user is quering by transaction type
-//   if (req.query.transaction_type)
-//     match.transaction_type = req.query.transaction_type === "credit" ? "credit" : "debit";
-//   //Check if user is sorting in ascending or descending order
-//   if (req.query.sortBy) {
-//     const splitted = (req.query.sortBy as string).split(":");
-//     sort[splitted[0] as keyof typeof sort] = splitted[1] === "desc" ? -1 : 1;
-//   }
-
-//   try {
-//     await req.user?.populate({
-//       path: "transactions",
-//       match,
-//       options: {
-//         limit: parseInt(req.query.limit as string),
-//         skip: parseInt(req.query.skip as string),
-//         sort,
-//       },
-//     });
-//     //Get all user transactions
-//     const transactions = req.user?.transactions;
-
-//     if (transactions?.length === 0)
-//       throw new AppError({
-//         message: "No transaction record, do make some transactions 😊",
-//         statusCode: responseStatusCodes.NOT_FOUND,
-//       });
-
-//     return responseHelper.successResponse(res, transactions);
-//   } catch (error) {
-//     next(error);
-//   }
-// };

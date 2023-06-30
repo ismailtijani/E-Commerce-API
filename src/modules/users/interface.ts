@@ -1,5 +1,6 @@
 import { HydratedDocument, Model, Document } from "mongoose";
 import { UserLevelEnum, AccountStatusEnum } from "../../enums";
+import { IProduct } from "../products/interface";
 
 export interface IUser {
   firstName: string;
@@ -13,6 +14,7 @@ export interface IUser {
   status: AccountStatusEnum;
   resetPasswordToken: string | undefined;
   resetPasswordExpire: Date | undefined;
+  products?: IProduct[];
 }
 
 export type UserDocument = IUser & IUserMethods & Document;
