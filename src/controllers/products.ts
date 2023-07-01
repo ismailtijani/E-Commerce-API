@@ -7,7 +7,7 @@ import { Sort } from "../modules/products/interface";
 
 export default class Controller {
   // create a new product by registered user
-  static uploadProduct: RequestHandler = async (req, res, next) => {
+  static createProduct: RequestHandler = async (req, res, next) => {
     const { _id } = req.user;
     const { name, price, description, imageUrl, category, countInStock } = req.body;
     try {
@@ -33,6 +33,7 @@ export default class Controller {
   static getAllProducts: RequestHandler = async (req, res, next) => {
     try {
       const products = await Product.find();
+      if (products.length === 0) throw new BadRequestError({ message: "No product found" });
       return responseHelper.successResponse(res, "All products fetched", products);
     } catch (error) {
       next(error);
@@ -128,6 +129,7 @@ export default class Controller {
     ];
     try {
       const products = await Product.aggregate(pipeline);
+      if (products.length === 0) throw new BadRequestError({ message: "No product found" });
       return responseHelper.successResponse(res, "Top products fecthed successfully", products);
     } catch (error) {
       next(error);
@@ -155,9 +157,3 @@ export default class Controller {
     }
   };
 }
-
-// A USER CAN VIEW THEIR TRANSACTION HISTORY.
-
-//GET /transaction/transaction_history?transaction_type=debit     ======>>>>> FILTER
-//GET /transaction/transaction_history?limit=2&skip=2             ======>>>>> PAGINATION
-//GET /transaction/transaction_history?sortBy=createdAt:desc      ======>>>>> SORT

@@ -7,6 +7,7 @@ import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
 import AuthRouter from "../routes/auth";
 import userRouter from "../routes/users";
+import productRouter from "../routes/products";
 
 class App {
   public app: Application;
@@ -39,6 +40,7 @@ class App {
     });
     this.app.use("/account", AuthRouter);
     this.app.use("/user", userRouter);
+    this.app.use("/products", productRouter);
     // set up global error handling here
     this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       errorHandler.handleError(error, res);
