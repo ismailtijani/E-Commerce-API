@@ -6,7 +6,6 @@ import RedisCache from "../config/redisCache";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
-import { IUser, UserDocument } from "../modules/users/interface";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {

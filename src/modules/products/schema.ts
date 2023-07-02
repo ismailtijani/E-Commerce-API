@@ -5,6 +5,8 @@ const productSchema = new Schema<IProduct>(
   {
     name: {
       type: String,
+      trim: true,
+      lowercase: true,
       required: [true, "Product name is required"],
       unique: true,
     },
@@ -14,6 +16,8 @@ const productSchema = new Schema<IProduct>(
     },
     category: {
       type: String,
+      trim: true,
+      lowercase: true,
       enum: Object.values(CategoryEnum),
       required: [true, "Product category is required"],
       default: CategoryEnum.OTHERS,
@@ -51,5 +55,5 @@ const productSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-const Product = model("Products", productSchema);
+const Product = model<IProduct>("Product", productSchema);
 export default Product;

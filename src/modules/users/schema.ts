@@ -51,12 +51,12 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   { timestamps: true }
 );
 
-// User document relationship with another document (to enable populate)
-// userSchema.virtual("*documentName*", {
-//   ref: "*modelName*",
-//   localField: "_id",
-//   foreignField: "*propertyName*",
-// });
+// User document relationship with product document (to enable populate)
+userSchema.virtual("products", {
+  ref: "Product",
+  localField: "_id",
+  foreignField: "seller",
+});
 
 //Hashing User plain text password before saving
 userSchema.pre<UserDocument>("save", async function (next) {

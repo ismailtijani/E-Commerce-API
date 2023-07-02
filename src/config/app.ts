@@ -18,8 +18,8 @@ class App {
 
   constructor() {
     this.app = express();
-    this.config();
     this.mongoSetup();
+    this.config();
   }
 
   private config() {
@@ -36,7 +36,7 @@ class App {
     // routes
     // set home route
     this.app.get("/", (req, res) => {
-      res.status(200).json({ message: "Welcome to Kimbali_Store API" });
+      res.status(200).json({ message: "Welcome to the E Commerce API" });
     });
     this.app.use("/account", AuthRouter);
     this.app.use("/user", userRouter);

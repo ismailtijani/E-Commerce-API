@@ -7,31 +7,34 @@ const validatorSchema = {
       "any.required": "Product name is required",
       "string.base": "Product name must be a string",
     }),
-  }),
-  price: Joi.string().required().messages({
-    "string.empty": "Product price cannot be an empty",
-    "any.required": "Product price is required",
-    "string.base": "Price must be a string",
-  }),
-  description: Joi.string().required().messages({
-    "string.empty": "Product description cannot be an empty",
-    "any.required": "Product description is required",
-    "string.base": "Description must be a string",
-  }),
-  imageUrl: Joi.string().required().messages({
-    "string.empty": "Product image url cannot be an empty",
-    "any.required": "Product image url is required",
-    "string.base": "Image Url must be a string",
-  }),
-  category: Joi.string().required().messages({
-    "string.empty": "Category cannot be an empty",
-    "any.required": "Product category is required",
-    "string.base": "Category must be a string",
-  }),
-  countInStock: Joi.string().required().messages({
-    "string.empty": "Product count cannot be an empty",
-    "any.required": "Product count is required",
-    "string.base": "Count in stock must be a string",
+    price: Joi.string().required().messages({
+      "string.empty": "Product price cannot be an empty",
+      "any.required": "Product price is required",
+      "string.base": "Price must be a string",
+    }),
+    description: Joi.string().required().messages({
+      "string.empty": "Product description cannot be an empty",
+      "any.required": "Product description is required",
+      "string.base": "Description must be a string",
+    }),
+    imageUrl: Joi.string().required().messages({
+      "string.empty": "Product image url cannot be an empty",
+      "any.required": "Product image url is required",
+      "string.base": "Image Url must be a string",
+    }),
+    category: Joi.string()
+      .trim()
+      .lowercase()
+      .valid("food", "electronic", "clothing", "furniture", "others")
+      .messages({
+        "any.only":
+          "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
+      }),
+    countInStock: Joi.string().required().messages({
+      "string.empty": "Product count cannot be an empty",
+      "any.required": "Product count is required",
+      "string.base": "Count in stock must be a string",
+    }),
   }),
 
   getProductByUser: Joi.object().keys({

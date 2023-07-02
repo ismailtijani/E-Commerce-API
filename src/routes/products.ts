@@ -31,17 +31,18 @@ class ProductRoutes {
       productController.createProduct
     );
     this.router.get(
-      "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
-      productController.getProductById
-    );
-    this.router.get(
       "/vendor",
       validator(validatorSchema.getProductByUser, "query"),
       productController.getProductsByUser
     );
+    this.router.get(
+      "/:_id",
+      validator(validatorSchema.verifyParamsId, "params"),
+      productController.getProductById
+    );
     this.router.patch(
       "/:_id",
+      validator(validatorSchema.verifyParamsId, "params"),
       validator(validatorSchema.update, "body"),
       productController.updateProduct
     );

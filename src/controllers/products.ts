@@ -24,7 +24,7 @@ export default class Controller {
     } catch (error: any) {
       // catch  E11000 duplicate key error
       if (error.code === 11000)
-        return res.status(400).json({ message: "Product name already exists" });
+        return res.status(400).json({ STATUS: "FAILURE", MESSAGE: "Product name already exists" });
       next(error);
     }
   };
@@ -96,11 +96,11 @@ export default class Controller {
       // if (!product) throw new BadRequestError({ message: "Product not found" });
       // updates.forEach((update) => (product[update] = req.body[update]));
       // await product.save();
-      const updatedData = await Product.findOneAndUpdate({ _id: req.params._id }, updates, {
+      const updatedData = await Product.findOneAndUpdate({ _id: req.params._id }, req.body, {
         new: true,
         runValidators: true,
       });
-      if (!updatedData) throw new ServerError("Update failed, please try again");
+      if (!updatedData) throw new BadRequestError({ message: "Update failed" });
       return responseHelper.successResponse(res, "Product updated successfully✅", updatedData);
     } catch (error) {
       next(error);
