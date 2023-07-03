@@ -46,6 +46,7 @@ const productSchema = new Schema<IProduct>(
     seller: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
     sales: {
       type: Number,

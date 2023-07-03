@@ -2,7 +2,6 @@ import { RequestHandler } from "express";
 import Product from "../modules/products/schema";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
-import ServerError from "../utils/errors/serverError";
 import { Sort } from "../modules/products/interface";
 
 export default class Controller {

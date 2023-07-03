@@ -2,9 +2,9 @@ import { Types } from "mongoose";
 
 export default interface ICart {
   user: Types.ObjectId;
-  products: [
+  items: [
     {
-      product: Types.ObjectId;
+      productId: Types.ObjectId;
       quantity: number;
     }
   ];

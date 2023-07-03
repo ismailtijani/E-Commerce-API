@@ -6,18 +6,25 @@ const cartSchema = new Schema<ICart>(
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
-    products: [
+    items: [
       {
-        product: {
+        productId: {
           type: Schema.Types.ObjectId,
           ref: "Product",
+          required: true,
         },
-        quantity: Number,
+        quantity: {
+          type: Number,
+          required: true,
+          default: 1,
+        },
       },
     ],
   },
   { timestamps: true }
 );
 
-export default model("Carts", cartSchema);
+const Cart = model("Carts", cartSchema);
+export default Cart;
