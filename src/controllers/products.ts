@@ -3,6 +3,7 @@ import Product from "../modules/products/schema";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import { Sort } from "../modules/products/interface";
+import NotFoundError from "../utils/errors/notFound";
 
 export default class Controller {
   // create a new product by registered user
@@ -86,15 +87,8 @@ export default class Controller {
   // update a specific product by id (Admin and Vendor)
   static updateProduct: RequestHandler = async (req, res, next) => {
     const updates = Object.keys(req.body);
-    const allowedUpdates = ["name", "price", "description", "imageUrl", "category", "countInStock"];
     try {
       if (updates.length === 0) throw new BadRequestError({ message: "Invalid update!" });
-      const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
-      if (!isValidOperation) throw new BadRequestError({ message: "Invalid update" });
-      // const product: any = await Product.findById(req.params._id);
-      // if (!product) throw new BadRequestError({ message: "Product not found" });
-      // updates.forEach((update) => (product[update] = req.body[update]));
-      // await product.save();
       const updatedData = await Product.findOneAndUpdate({ _id: req.params._id }, req.body, {
         new: true,
         runValidators: true,
@@ -110,7 +104,7 @@ export default class Controller {
   static deleteProduct: RequestHandler = async (req, res, next) => {
     try {
       const product = await Product.findByIdAndDelete(req.params._id);
-      if (!product) throw new BadRequestError({ message: "Product not found" });
+      if (!product) throw new NotFoundError("Unable to delete product");
       return responseHelper.successResponse(res, "Producted deleted successfully");
     } catch (error) {
       next(error);

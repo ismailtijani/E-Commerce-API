@@ -24,7 +24,7 @@ export default class Controller {
 
   static viewCart: RequestHandler = async (req, res, next) => {
     try {
-      const carts = await Cart.find({ _id: req.user?._id });
+      const carts = await req.user?.populate({ path: "carts" });
       if (!carts) throw new NotFoundError("Empty cart, do add some products");
       return responseHelper.successResponse(res, "Products fetched successfully", carts);
     } catch (error) {
@@ -32,5 +32,26 @@ export default class Controller {
     }
   };
 
-  //   static updateCart: RequestHandler = async (req, res, next) => {};
+  static updateCart: RequestHandler = async (req, res, next) => {
+    try {
+      const updatedCart = await Cart.findOneAndUpdate({ _id: req.params._id }, req.body, {
+        new: true,
+        runValidators: true,
+      });
+      if (!updatedCart) throw new BadRequestError({ message: "Update failed" });
+      return responseHelper.successResponse(res, "Item updated successfully", updatedCart);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  static deleteCart: RequestHandler = async (req, res, next) => {
+    try {
+      const item = await Cart.findByIdAndDelete({ _id: req.params._id });
+      if (item) throw new NotFoundError("Unable to delete item");
+      return responseHelper.successResponse(res, "Item deleted from cart successfully");
+    } catch (error) {
+      next(error);
+    }
+  };
 }
