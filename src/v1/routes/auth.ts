@@ -1,8 +1,8 @@
 import { Router } from "express";
-import userValidatorSchema from "../modules/users/validator";
-import validator from "../middlewares/validator";
-import authController from "../controllers/auth";
-import auth from "../middlewares/auth";
+import userValidatorSchema from "../../modules/users/validator";
+import validator from "../../middlewares/validator";
+import authController from "../../controllers/auth";
+import auth from "../../middlewares/auth";
 
 class AuthRoutes {
   public router: Router;
@@ -19,7 +19,7 @@ class AuthRoutes {
       authController.signup
     );
     this.router.get(
-      "/accountConfirmation/:confirmationCode",
+      "/:confirmationCode",
       validator(userValidatorSchema.confirmAccount, "params"),
       authController.confirmAccount
     );
@@ -43,7 +43,7 @@ class AuthRoutes {
     //Every routes below will require authentication
     this.router.use(auth.middleware);
     this.router.post("/logout", authController.logout);
-    this.router.delete("/delete_account", authController.deleteProfile);
+    this.router.delete("/", authController.deleteProfile);
   }
 }
 

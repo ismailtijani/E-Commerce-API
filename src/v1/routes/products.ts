@@ -1,8 +1,8 @@
 import { Router } from "express";
-import productController from "../controllers/products";
-import auth from "../middlewares/auth";
-import validatorSchema from "../modules/products/validator";
-import validator from "../middlewares/validator";
+import productController from "../../controllers/products";
+import auth from "../../middlewares/auth";
+import validatorSchema from "../../modules/products/validator";
+import validator from "../../middlewares/validator";
 
 class ProductRoutes {
   public router: Router;
@@ -26,7 +26,7 @@ class ProductRoutes {
     //Every routes below will require authentication
     this.router.use(auth.middleware);
     this.router.post(
-      "/create",
+      "/",
       validator(validatorSchema.createProduct, "body"),
       productController.createProduct
     );

@@ -1,9 +1,9 @@
 import { Router } from "express";
-import auth from "../middlewares/auth";
-import upload from "../middlewares/multer";
-import validator from "../middlewares/validator";
-import userValidatorSchema from "../modules/users/validator";
-import userController from "../controllers/users";
+import auth from "../../middlewares/auth";
+import upload from "../../middlewares/multer";
+import validator from "../../middlewares/validator";
+import userValidatorSchema from "../../modules/users/validator";
+import userController from "../../controllers/users";
 
 class UserRoutes {
   public router: Router;
@@ -16,18 +16,18 @@ class UserRoutes {
   protected registeredRoutes() {
     //Every routes below will require authentication
     this.router.use(auth.middleware);
-    this.router.get("/profile", userController.readProfile);
+    this.router.get("/", userController.readProfile);
     this.router.post(
-      "/profile/upload_photo",
+      "/profile_photo",
       // validator(userValidatorSchema.profilePhoto, "body"),
       upload().single("image"),
       userController.updateProfilePhoto
     );
-    this.router.get("/profile/view_photo/:filename", userController.viewProfilePhoto);
-    this.router.get("/profile/update_photo/:filename", userController.updateProfilePhoto);
-    this.router.delete("/profile/delete_photo/:filename", userController.deleteProfilePhoto);
+    this.router.get("/profile_photo/:filename", userController.viewProfilePhoto);
+    this.router.patch("/profile_photo/:filename", userController.updateProfilePhoto);
+    this.router.delete("/profile_photo/:filename", userController.deleteProfilePhoto);
     this.router.patch(
-      "/update_profile",
+      "/",
       validator(userValidatorSchema.update, "body"),
       userController.updateProfile
     );

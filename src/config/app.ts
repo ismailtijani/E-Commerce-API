@@ -5,9 +5,9 @@ import mongoose from "mongoose";
 import Logger from "../utils/logger";
 import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
-import AuthRouter from "../routes/auth";
-import userRouter from "../routes/users";
-import productRouter from "../routes/products";
+import v1AuthRouter from "../v1/routes/auth";
+import v1userRouter from "../v1/routes/users";
+import v1productRouter from "../v1/routes/products";
 
 class App {
   public app: Application;
@@ -38,9 +38,9 @@ class App {
     this.app.get("/", (req, res) => {
       res.status(200).json({ message: "Welcome to the E Commerce API" });
     });
-    this.app.use("/account", AuthRouter);
-    this.app.use("/user", userRouter);
-    this.app.use("/products", productRouter);
+    this.app.use("/api/v1/accounts", v1AuthRouter);
+    this.app.use("/api/v1/users", v1userRouter);
+    this.app.use("/api/v1/products", v1productRouter);
     // set up global error handling here
     this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       errorHandler.handleError(error, res);
