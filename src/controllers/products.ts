@@ -33,7 +33,7 @@ export default class Controller {
   static getAllProducts: RequestHandler = async (req, res, next) => {
     try {
       const products = await Product.find();
-      if (products.length === 0) throw new BadRequestError({ message: "No product found" });
+      if (products.length === 0) throw new NotFoundError("No product found");
       return responseHelper.successResponse(res, "All products fetched", products);
     } catch (error) {
       next(error);
@@ -122,7 +122,7 @@ export default class Controller {
     ];
     try {
       const products = await Product.aggregate(pipeline);
-      if (products.length === 0) throw new BadRequestError({ message: "No product found" });
+      if (products.length === 0) throw new NotFoundError("No product found");
       return responseHelper.successResponse(res, "Top products fecthed successfully", products);
     } catch (error) {
       next(error);

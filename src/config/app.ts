@@ -8,6 +8,7 @@ import errorHandler from "../middlewares/errorHandler";
 import v1AuthRouter from "../v1/routes/auth";
 import v1userRouter from "../v1/routes/users";
 import v1productRouter from "../v1/routes/products";
+import v1CartRouter from "../v1/routes/carts";
 
 class App {
   public app: Application;
@@ -41,6 +42,7 @@ class App {
     this.app.use("/api/v1/accounts", v1AuthRouter);
     this.app.use("/api/v1/users", v1userRouter);
     this.app.use("/api/v1/products", v1productRouter);
+    this.app.use("/api/v1/carts", v1CartRouter);
     // set up global error handling here
     this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       errorHandler.handleError(error, res);
