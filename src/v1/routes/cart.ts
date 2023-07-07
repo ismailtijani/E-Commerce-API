@@ -1,6 +1,6 @@
 import { Router } from "express";
 import auth from "../../middlewares/auth";
-import cartController from "../../controllers/carts";
+import cartController from "../../controllers/cart";
 import validator from "../../middlewares/validator";
 import validatorSchema from "../../modules/carts/validator";
 

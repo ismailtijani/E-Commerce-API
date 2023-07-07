@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 export default interface ICart {
   user: Types.ObjectId;
-  items: [
+  products: [
     {
       productId: Types.ObjectId;
       quantity: number;

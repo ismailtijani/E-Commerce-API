@@ -3,7 +3,7 @@ import auth from "../../middlewares/auth";
 import upload from "../../middlewares/multer";
 import validator from "../../middlewares/validator";
 import userValidatorSchema from "../../modules/users/validator";
-import userController from "../../controllers/users";
+import userController from "../../controllers/user";
 
 class UserRoutes {
   public router: Router;

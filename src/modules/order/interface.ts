@@ -1,22 +1,22 @@
 import { Types } from "mongoose";
 
 export interface IOrder {
-  user: Types.ObjectId;
+  userId: Types.ObjectId;
   products: [
     {
-      product: Types.ObjectId;
+      productId: Types.ObjectId;
       quantity: number;
     }
   ];
   totalPrice: number;
   payment: {
     paymentMethod: PaymentMethod;
-    paymentStatus: PaymentStatus;
+    // paymentStatus: PaymentStatus;
     isPaid: boolean;
     paidAt: Date;
     paymentResult: {
       orderId: string;
-      payerID: string;
+      payerId: string;
       paymentId: string;
     };
   };
@@ -43,9 +43,9 @@ export enum OrderStatus {
   CANCELLED = "cancelled",
 }
 
-export enum PaymentStatus {
-  PENDING = "pending",
-  PROCESSING = "processing",
-  DELIVERED = "delivered",
-  CANCELLED = "cancelled",
-}
+// export enum PaymentStatus {
+//   PENDING = "pending",
+//   PROCESSING = "processing",
+//   DELIVERED = "delivered",
+//   CANCELLED = "cancelled",
+// }

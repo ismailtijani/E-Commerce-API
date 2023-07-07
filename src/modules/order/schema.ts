@@ -1,15 +1,15 @@
 import { Schema, model } from "mongoose";
-import { IOrder, OrderStatus, PaymentMethod, PaymentStatus } from "./interface";
+import { IOrder, OrderStatus, PaymentMethod } from "./interface";
 
 const orderSchema = new Schema<IOrder>(
   {
-    user: {
+    userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
     },
     products: [
       {
-        product: {
+        productId: {
           type: Schema.Types.ObjectId,
           ref: "Product",
         },
@@ -28,18 +28,18 @@ const orderSchema = new Schema<IOrder>(
         enum: Object.values(PaymentMethod),
         default: PaymentMethod.CARD,
       },
-      paymentStatus: {
-        type: String,
-        enum: Object.values(PaymentStatus),
-        default: PaymentStatus.PENDING,
-      },
+      // paymentStatus: {
+      //   type: String,
+      //   enum: Object.values(PaymentStatus),
+      //   default: PaymentStatus.PENDING,
+      // },
       isPaid: {
         type: Boolean,
         default: false,
       },
       paidAt: Date,
       paymentResult: {
-        payerID: String,
+        payerId: String,
         paymentId: String,
         orderId: String,
       },

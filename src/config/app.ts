@@ -6,9 +6,9 @@ import Logger from "../utils/logger";
 import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
 import v1AuthRouter from "../v1/routes/auth";
-import v1userRouter from "../v1/routes/users";
-import v1productRouter from "../v1/routes/products";
-import v1CartRouter from "../v1/routes/carts";
+import v1userRouter from "../v1/routes/user";
+import v1productRouter from "../v1/routes/product";
+import v1CartRouter from "../v1/routes/cart";
 
 class App {
   public app: Application;

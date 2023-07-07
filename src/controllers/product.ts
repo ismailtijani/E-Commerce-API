@@ -8,17 +8,10 @@ import NotFoundError from "../utils/errors/notFound";
 export default class Controller {
   // create a new product by registered user
   static createProduct: RequestHandler = async (req, res, next) => {
-    const { _id } = req.user;
-    const { name, price, description, imageUrl, category, countInStock } = req.body;
     try {
       const product = await Product.create({
-        name,
-        price,
-        description,
-        imageUrl,
-        category,
-        countInStock,
-        seller: _id,
+        ...req.body,
+        seller: req.user._id,
       });
       return responseHelper.createdResponse(res, "Product created succesfully", product);
     } catch (error: any) {
@@ -33,7 +26,7 @@ export default class Controller {
   static getAllProducts: RequestHandler = async (req, res, next) => {
     try {
       const products = await Product.find();
-      if (products.length === 0) throw new NotFoundError("No product found");
+      if (!products || products.length === 0) throw new NotFoundError("No product found");
       return responseHelper.successResponse(res, "All products fetched", products);
     } catch (error) {
       next(error);
@@ -63,8 +56,7 @@ export default class Controller {
 
       //Get all user products
       const products = req.user?.products;
-
-      if (products?.length === 0)
+      if (!products || products?.length === 0)
         throw new BadRequestError({ message: "No product found, do upload some products 😊" });
 
       return responseHelper.successResponse(res, "All products fetched", products);
@@ -77,8 +69,8 @@ export default class Controller {
   static getProductById: RequestHandler = async (req, res, next) => {
     try {
       const product = await Product.findById(req.params._id);
-      if (product)
-        return responseHelper.successResponse(res, "Product retrieved successfully", product);
+      if (!product) throw new NotFoundError("No product found");
+      return responseHelper.successResponse(res, "Product retrieved successfully", product);
     } catch (error) {
       next(error);
     }
