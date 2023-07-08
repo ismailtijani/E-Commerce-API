@@ -2,6 +2,8 @@ import { RequestHandler } from "express";
 import NotFoundError from "../utils/errors/notFound";
 import Order from "../modules/order/schema";
 import { responseHelper } from "../utils/responseHelper";
+import BadRequestError from "../utils/errors/badRequest";
+import { OrderStatus } from "../modules/order/interface";
 
 export default class Controller {
   // create a new order showing products, total price of products and user details
@@ -54,6 +56,65 @@ export default class Controller {
       next(error);
     }
   };
-  // static updateOrder: RequestHandler = async (req, res, next) => {};
+  // Update a specific order by id
+  static updateOrder: RequestHandler = async (req, res, next) => {
+    const updates = Object.keys(req.body);
+    try {
+      //Check if updates are provided
+      if (updates.length === 0) throw new BadRequestError({ message: "Invalid update!" });
+      const updatedOrder = await Order.findByIdAndUpdate(req.params._id, req.body, {
+        new: true,
+        runValidators: true,
+      });
+      if (!updatedOrder) throw new BadRequestError({ message: "Update failed" });
+      return responseHelper.successResponse(res, "Order updated successfully ✅", updatedOrder);
+    } catch (error) {
+      next(error);
+    }
+  };
+  //Update an order after payment confirmation
+  static updateOrderAfterPayment: RequestHandler = async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params._id);
+      if (!order) throw new NotFoundError("Order not found");
+      order.status = OrderStatus.PROCESSING;
+      order.payment.isPaid = true;
+      order.payment.paidAt = new Date();
+      order.payment.paymentResult = {
+        orderId: order._id.toString(),
+        payerId: req.user._id,
+        paymentId: "******",
+      };
+      await order.save();
+      //Delete cart
+      //Increase each product sales count
+      return responseHelper.successResponse(res, "Payment recieved, Order in process...", order);
+    } catch (error) {
+      next(error);
+    }
+  };
+  //Update an Order after delivery
+  static updateOrderAfterDelivery: RequestHandler = async (req, res, next) => {
+    try {
+      const order = await Order.findById(req.params._id);
+      if (!order) throw new NotFoundError("Order not found");
+      order.status = OrderStatus.DELIVERED;
+      order.deliveredAt = new Date();
+      await order.save();
+      return responseHelper.successResponse(res, "Your order has been Delivered 😊");
+    } catch (error) {
+      next(error);
+    }
+  };
+  // delete a specific order by id (Admin and user)
+  static deleteOrder: RequestHandler = async (req, res, next) => {
+    try {
+      const order = await Order.findByIdAndDelete(req.params._id);
+      if (!order) throw new NotFoundError("Operation failed");
+      return responseHelper.successResponse(res, "Order deleted successfully");
+    } catch (error) {
+      next(error);
+    }
+  };
   //Total sales made(Sum total)
 }

@@ -80,6 +80,7 @@ export default class Controller {
   static updateProduct: RequestHandler = async (req, res, next) => {
     const updates = Object.keys(req.body);
     try {
+      //Check if updates are provided
       if (updates.length === 0) throw new BadRequestError({ message: "Invalid update!" });
       const updatedData = await Product.findOneAndUpdate({ _id: req.params._id }, req.body, {
         new: true,
@@ -92,7 +93,7 @@ export default class Controller {
     }
   };
 
-  // delete a specific product by id (Admin and Vendor)
+  // delete a specific product by id (Admin and user)
   static deleteProduct: RequestHandler = async (req, res, next) => {
     try {
       const product = await Product.findByIdAndDelete(req.params._id);
