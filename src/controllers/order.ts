@@ -117,4 +117,7 @@ export default class Controller {
     }
   };
   //Total sales made(Sum total)
+  static income: RequestHandler = async (req, res, next) => {
+    const { _id } = req.params;
+  };
 }
