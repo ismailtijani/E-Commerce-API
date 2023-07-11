@@ -4,6 +4,9 @@ import Order from "../modules/order/schema";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import { OrderStatus } from "../modules/order/interface";
+import Logger from "../utils/logger";
+import Product from "../modules/products/schema";
+import Cart from "../modules/carts/schema";
 
 export default class Controller {
   // create a new order showing products, total price of products and user details
@@ -26,6 +29,7 @@ export default class Controller {
       next(error);
     }
   };
+
   //Get all orders (Super Admin)
   static getOrders: RequestHandler = async (req, res, next) => {
     try {
@@ -36,6 +40,7 @@ export default class Controller {
       next(error);
     }
   };
+
   //Get all orders placed by a specific user
   static getOrdersByUser: RequestHandler = async (req, res, next) => {
     try {
@@ -46,6 +51,7 @@ export default class Controller {
       next(error);
     }
   };
+
   //Get a specific order by id
   static getOrdersById: RequestHandler = async (req, res, next) => {
     try {
@@ -56,6 +62,7 @@ export default class Controller {
       next(error);
     }
   };
+
   // Update a specific order by id
   static updateOrder: RequestHandler = async (req, res, next) => {
     const updates = Object.keys(req.body);
@@ -72,6 +79,7 @@ export default class Controller {
       next(error);
     }
   };
+
   //Update an order after payment confirmation
   static updateOrderAfterPayment: RequestHandler = async (req, res, next) => {
     try {
@@ -86,13 +94,30 @@ export default class Controller {
         paymentId: "******",
       };
       await order.save();
+      //Track the number of times a product has been sold
+      // await req.user.populate("carts")
+      const carts = req.user.carts;
+      // if (!carts) throw new NotFoundError("Cart is empty, Kindly add some products😊")
+      const bulkOptions = carts?.flatMap((cartItem) =>
+        cartItem.products.map((product) => ({
+          updateOne: {
+            filter: { _id: product.productId },
+            update: { $inc: { sales: +product.quantity } },
+          },
+        }))
+      );
+      console.log(bulkOptions);
+      //Update the product quantity
+      const updated = await Product.bulkWrite(bulkOptions || []);
+      console.log(updated);
       //Delete cart
-      //Increase each product sales count
+      await Cart.findOneAndDelete({ user: req.user._id });
       return responseHelper.successResponse(res, "Payment recieved, Order in process...", order);
     } catch (error) {
       next(error);
     }
   };
+
   //Update an Order after delivery
   static updateOrderAfterDelivery: RequestHandler = async (req, res, next) => {
     try {
@@ -106,6 +131,7 @@ export default class Controller {
       next(error);
     }
   };
+
   // delete a specific order by id (Admin and user)
   static deleteOrder: RequestHandler = async (req, res, next) => {
     try {
@@ -115,10 +141,5 @@ export default class Controller {
     } catch (error) {
       next(error);
     }
-  };
-  //Total sales made(Sum total)
-  static income: RequestHandler = async (req, res, next) => {
-    const { _id } = req.params;
-    const user = req.user;
   };
 }

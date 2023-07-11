@@ -7,8 +7,9 @@ import NotFoundError from "../utils/errors/notFound";
 export default class Controller {
   static addCart: RequestHandler = async (req, res, next) => {
     try {
+      //TODO: Write some logic to check available quanity and inform the user accordingly
       const cart = await Cart.create({
-        user: req.user?._id,
+        user: req.user._id,
         products: [
           {
             productId: req.body.productId,
