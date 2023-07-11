@@ -4,7 +4,6 @@ import Order from "../modules/order/schema";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import { OrderStatus } from "../modules/order/interface";
-import Logger from "../utils/logger";
 import Product from "../modules/products/schema";
 import Cart from "../modules/carts/schema";
 
@@ -32,6 +31,7 @@ export default class Controller {
 
   //Get all orders (Super Admin)
   static getOrders: RequestHandler = async (req, res, next) => {
+    //Add filtering,Sorting and Pagination
     try {
       const orders = await Order.find();
       if (!orders || orders.length === 0) throw new NotFoundError("No order found");
@@ -55,7 +55,7 @@ export default class Controller {
   //Get a specific order by id
   static getOrdersById: RequestHandler = async (req, res, next) => {
     try {
-      const order = await Order.findById(req.user._id);
+      const order = await Order.findById(req.params._id);
       if (!order) throw new NotFoundError("No order found");
       return responseHelper.successResponse(res, "Orders retrieved", order);
     } catch (error) {
