@@ -18,11 +18,25 @@ export default class Controller {
         throw new NotFoundError("Cart is empty, Kindly add some products😊");
       //Fetch products to be place on order from cart
       const products = carts?.map((cartItem) => cartItem.products);
+
+      // Get the total price of the products in the cart
+      //  const totalPrice = carts?.flatMap((cartItem) =>
+      //   cartItem.products.map((product) => ({
+      //     updateOne: {
+      //       filter: { _id: product.productId },
+      //       update: { $inc: { sales: +product.quantity } },
+      //     },
+      //   }))
+      // );
+      // const totalPrice = cart.products.reduce((total, product) => {
+      //   return total + product.product.price * product.quantity;
+      // }, 0);
       await Order.create({
         userId: req.user._id,
         products,
         ...req.body,
       });
+      await Cart.findOneAndDelete({ user: req.user._id });
       return responseHelper.createdResponse(res, "Your order has successfully been placed");
     } catch (error) {
       next(error);
