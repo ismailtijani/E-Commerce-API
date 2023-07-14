@@ -16,7 +16,7 @@ const orderSchema = new Schema<IOrder>(
         quantity: Number,
       },
     ],
-    totalPrice: Number,
+    // totalPrice: Number,
     status: {
       type: String,
       enum: Object.values(OrderStatus),

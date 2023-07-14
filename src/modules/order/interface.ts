@@ -8,7 +8,7 @@ export interface IOrder {
       quantity: number;
     }
   ];
-  totalPrice: number;
+  // totalPrice: number;
   payment: {
     paymentMethod: PaymentMethod;
     // paymentStatus: PaymentStatus;

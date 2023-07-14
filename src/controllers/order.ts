@@ -11,33 +11,49 @@ export default class Controller {
   // create a new order showing products, total price of products and user details
   static createOrder: RequestHandler = async (req, res, next) => {
     try {
-      // get the cart of the user
+      // Get the cart of the user
       await req.user.populate("cart");
       const carts = req.user.carts;
       if (!carts || carts.length === 0)
-        throw new NotFoundError("Cart is empty, Kindly add some products😊");
-      //Fetch products to be place on order from cart
-      const products = carts?.map((cartItem) => cartItem.products);
+        throw new NotFoundError("Cart is empty. Kindly add some products 😊");
 
       // Get the total price of the products in the cart
-      //  const totalPrice = carts?.flatMap((cartItem) =>
-      //   cartItem.products.map((product) => ({
-      //     updateOne: {
-      //       filter: { _id: product.productId },
-      //       update: { $inc: { sales: +product.quantity } },
-      //     },
-      //   }))
-      // );
-      // const totalPrice = cart.products.reduce((total, product) => {
-      //   return total + product.product.price * product.quantity;
-      // }, 0);
+      const pipeline = [
+        {
+          $unwind: "$products",
+        },
+        {
+          $lookup: {
+            from: "products",
+            localField: "products.productId",
+            foreignField: "_id",
+            as: "product",
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalPrice: {
+              $sum: {
+                $multiply: [{ $arrayElemAt: ["$product.price", 0] }, "$products.quantity"],
+              },
+            },
+          },
+        },
+      ];
+
+      const result = await Cart.aggregate(pipeline).exec();
+
+      const totalPrice = result[0]?.totalPrice || 0;
+
       await Order.create({
         userId: req.user._id,
-        products,
+        products: carts.flatMap((cartItem) => cartItem.products),
+        totalPrice,
         ...req.body,
       });
       await Cart.findOneAndDelete({ user: req.user._id });
-      return responseHelper.createdResponse(res, "Your order has successfully been placed");
+      return responseHelper.createdResponse(res, "Your order has been successfully placed");
     } catch (error) {
       next(error);
     }
