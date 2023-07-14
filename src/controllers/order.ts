@@ -44,7 +44,13 @@ export default class Controller {
 
       const result = await Cart.aggregate(pipeline).exec();
 
-      const totalPrice = result[0]?.totalPrice || 0;
+      const sum = result[0]?.totalPrice || 0;
+
+      // create commission
+      const commission = (sum * 0.05).toFixed(2);
+
+      // total price
+      const totalPrice = (sum + Number(commission)).toFixed(2);
 
       await Order.create({
         userId: req.user._id,

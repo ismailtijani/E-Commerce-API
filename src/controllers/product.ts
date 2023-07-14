@@ -142,4 +142,20 @@ export default class Controller {
       next(error);
     }
   };
+
+  static userReview: RequestHandler = async (req, res, next) => {
+    try {
+      const product = await Product.findById(req.params._id);
+      if (!product) throw new NotFoundError("Product not found");
+      product.reviews.push(req.body.review);
+      const totalRatings = product.reviews.length;
+      const currentRating = product.rating;
+      const updatedRating = (currentRating * (totalRatings - 1) + req.body.rating) / totalRatings;
+      product.rating = updatedRating;
+      await product.save();
+      return responseHelper.createdResponse(res, "Review added successfully");
+    } catch (error) {
+      next(error);
+    }
+  };
 }
