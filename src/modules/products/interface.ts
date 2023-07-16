@@ -6,8 +6,8 @@ export interface IProduct {
   description: string;
   imageUrl: string;
   category: CategoryEnum;
-  countInStock: number;
-  rating: RatingEnum;
+  availableQuantity: number;
+  ratings: IRating[];
   reviews: string[];
   seller: Types.ObjectId;
   sales: number;
@@ -28,7 +28,10 @@ export enum RatingEnum {
   FOUR = 4,
   FIVE = 5,
 }
-
+export interface IRating {
+  userId: Types.ObjectId;
+  rating: RatingEnum;
+}
 // type IMatch = {
 //   rating: RatingEnum;
 //   category: CategoryEnum;

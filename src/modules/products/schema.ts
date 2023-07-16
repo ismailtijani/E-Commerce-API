@@ -30,13 +30,20 @@ const productSchema = new Schema<IProduct>(
       type: String,
       required: [true, "Product image is required"],
     },
-    countInStock: {
+    availableQuantity: {
       type: Number,
       required: [true, "Product quatity is required"],
     },
-    rating: {
-      type: Number,
-      enum: Object.values(RatingEnum),
+    ratings: {
+      userId: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+      rating: {
+        type: Number,
+        enum: Object.values(RatingEnum),
+        default: 0,
+      },
     },
     reviews: [
       {

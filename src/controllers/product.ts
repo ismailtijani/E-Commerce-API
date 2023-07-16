@@ -4,6 +4,7 @@ import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import { Sort } from "../modules/products/interface";
 import NotFoundError from "../utils/errors/notFound";
+import Order from "../modules/order/schema";
 
 export default class Controller {
   // create a new product by registered user
@@ -143,16 +144,32 @@ export default class Controller {
     }
   };
 
-  static userReview: RequestHandler = async (req, res, next) => {
+  static productRating: RequestHandler = async (req, res, next) => {
+    const { _id } = req.params;
+    const userId = req.user._id;
+    const { review, rating } = req.body;
     try {
-      const product = await Product.findById(req.params._id);
+      // Rate a product only if user has purchased the product
+      const hasPurchased = await Order.exists({
+        userId,
+        "products.productId": _id,
+        // status: "completed",
+      });
+      if (!hasPurchased)
+        throw new BadRequestError({
+          message: "You can only review and rate products you have purchased",
+        });
+      const product = await Product.findByIdAndUpdate(
+        { _id, "ratings.userId": { $ne: userId } },
+        {
+          $push: { reviews: review, ratings: { userId, rating } },
+          $inc: { totalRatings: 1 },
+          $avg: { rating: "$rating" }, // Update the average rating
+        },
+        { new: true }
+      );
       if (!product) throw new NotFoundError("Product not found");
-      product.reviews.push(req.body.review);
-      const totalRatings = product.reviews.length;
-      const currentRating = product.rating;
-      const updatedRating = (currentRating * (totalRatings - 1) + req.body.rating) / totalRatings;
-      product.rating = updatedRating;
-      await product.save();
+
       return responseHelper.createdResponse(res, "Review added successfully");
     } catch (error) {
       next(error);

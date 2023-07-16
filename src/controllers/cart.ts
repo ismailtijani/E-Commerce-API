@@ -3,21 +3,41 @@ import Cart from "../modules/carts/schema";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import NotFoundError from "../utils/errors/notFound";
+import Product from "../modules/products/schema";
+import ICart from "../modules/carts/interface";
 
 export default class Controller {
   static addCart: RequestHandler = async (req, res, next) => {
+    const { productId, quantity } = req.body;
+
     try {
-      //TODO: Write some logic to check available quanity and inform the user accordingly
-      const cart = await Cart.create({
-        user: req.user._id,
-        products: [
-          {
-            productId: req.body.productId,
-            quantity: req.body.quantity,
-          },
-        ],
-      });
-      return responseHelper.successResponse(res, "Cart created successfully", cart);
+      const product = await Product.findById(productId);
+      if (!product) {
+        throw new BadRequestError({ message: "Product not found" });
+      }
+      // check if the added quantity is greater than the available quantity
+      if (product.availableQuantity < quantity) {
+        throw new BadRequestError({
+          message: `Insufficient quantity, only ${product.availableQuantity} items are available. For more items, please contact the seller.`,
+        });
+      }
+      //Create a new cart or update an existing cart in a single operation
+      const cart = await Cart.findOneAndUpdate(
+        { user: req.user._id },
+        { $push: { products: { $each: [{ productId, quantity }], $position: 0 } } },
+        { upsert: true, new: true }
+      );
+
+      if (!cart) {
+        throw new BadRequestError({ message: "Failed to update cart" });
+      }
+
+      const newCart = cart.toObject();
+      return responseHelper.successResponse(
+        res,
+        `Cart ${newCart.products.length > 1 ? "updated" : "created"} successfully`,
+        newCart
+      );
     } catch (error) {
       next(error);
     }

@@ -17,40 +17,51 @@ export default class Controller {
       if (!carts || carts.length === 0)
         throw new NotFoundError("Cart is empty. Kindly add some products 😊");
 
-      // Get the total price of the products in the cart
-      const pipeline = [
-        {
-          $unwind: "$products",
-        },
-        {
-          $lookup: {
-            from: "products",
-            localField: "products.productId",
-            foreignField: "_id",
-            as: "product",
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalPrice: {
-              $sum: {
-                $multiply: [{ $arrayElemAt: ["$product.price", 0] }, "$products.quantity"],
-              },
-            },
-          },
-        },
-      ];
+      // Fetch products from the database with availability and quantity checks
+      const productIds = carts.flatMap((cartItem) =>
+        cartItem.products.map((product) => product.productId)
+      );
+      const products = await Product.find({
+        _id: { $in: productIds },
+        availableQuantity: { $gte: 1 },
+      });
 
-      const result = await Cart.aggregate(pipeline).exec();
+      // Create a map of available quantities for each product
+      // const availableQuantities = new Map<string, number>();
+      // products.forEach((product) => {
+      //   availableQuantities.set(product._id.toString(), product.availableQuantity);
+      // });
 
-      const sum = result[0]?.totalPrice || 0;
+      // Check product availability and quantity, and calculate total price
+      let costTotal = 0;
+      for (const cartItem of carts) {
+        for (const product of cartItem.products) {
+          // const availableQuantity = availableQuantities.get(product.productId.toString());
+          // if (!availableQuantity) {
+          //   throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
+          // }
+          // if (availableQuantity < product.quantity) {
+          //   throw new BadRequestError({
+          //     message: `Insufficient quantity for product with ID ${product.productId}.`,
+          //   });
+          // }
+          // Get the price of a product by its ID
+          const foundProduct = products.find((prd) => prd._id === product.productId);
+          if (!foundProduct)
+            throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
+          if (foundProduct.availableQuantity < product.quantity)
+            throw new BadRequestError({
+              message: `Insufficient quantity for product with ID ${product.productId}.`,
+            });
+          costTotal += foundProduct?.price * product.quantity;
+        }
+      }
 
       // create commission
-      const commission = (sum * 0.05).toFixed(2);
+      const commission = (costTotal * 0.05).toFixed(2);
 
       // total price
-      const totalPrice = (sum + Number(commission)).toFixed(2);
+      const totalPrice = (costTotal + Number(commission)).toFixed(2);
 
       await Order.create({
         userId: req.user._id,
