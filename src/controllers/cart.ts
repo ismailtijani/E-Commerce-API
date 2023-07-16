@@ -4,7 +4,6 @@ import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
 import NotFoundError from "../utils/errors/notFound";
 import Product from "../modules/products/schema";
-import ICart from "../modules/carts/interface";
 
 export default class Controller {
   static addCart: RequestHandler = async (req, res, next) => {

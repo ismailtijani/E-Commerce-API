@@ -23,10 +23,14 @@ export default class Controller {
     }
   };
 
-  // get all products uploaded by all users (Admin)
+  // get all products uploaded by all users (Super Admin)
+  //GET /products?page=2&limit=20       ======>>>>> PAGINATION
   static getAllProducts: RequestHandler = async (req, res, next) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-      const products = await Product.find();
+      const products = await Product.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
       if (!products || products.length === 0) throw new NotFoundError("No product found");
       return responseHelper.successResponse(res, "All products fetched", products);
     } catch (error) {
@@ -35,8 +39,6 @@ export default class Controller {
   };
 
   // GET ALL PRODUCTS UPLOADED BY A SPECIFIC USER (Vendor)
-
-  //GET /products?category=electronics     ======>>>>> FILTER
   //GET /products?limit=2&skip=2             ======>>>>> PAGINATION
   //GET /products?sortBy=createdAt:desc      ======>>>>> SORT
   static getProductsByUser: RequestHandler = async (req, res, next) => {

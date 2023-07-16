@@ -25,26 +25,10 @@ export default class Controller {
         _id: { $in: productIds },
         availableQuantity: { $gte: 1 },
       });
-
-      // Create a map of available quantities for each product
-      // const availableQuantities = new Map<string, number>();
-      // products.forEach((product) => {
-      //   availableQuantities.set(product._id.toString(), product.availableQuantity);
-      // });
-
       // Check product availability and quantity, and calculate total price
       let costTotal = 0;
       for (const cartItem of carts) {
         for (const product of cartItem.products) {
-          // const availableQuantity = availableQuantities.get(product.productId.toString());
-          // if (!availableQuantity) {
-          //   throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
-          // }
-          // if (availableQuantity < product.quantity) {
-          //   throw new BadRequestError({
-          //     message: `Insufficient quantity for product with ID ${product.productId}.`,
-          //   });
-          // }
           // Get the price of a product by its ID
           const foundProduct = products.find((prd) => prd._id === product.productId);
           if (!foundProduct)
@@ -56,31 +40,32 @@ export default class Controller {
           costTotal += foundProduct?.price * product.quantity;
         }
       }
-
       // create commission
       const commission = (costTotal * 0.05).toFixed(2);
-
       // total price
       const totalPrice = (costTotal + Number(commission)).toFixed(2);
 
-      await Order.create({
+      const order = await Order.create({
         userId: req.user._id,
         products: carts.flatMap((cartItem) => cartItem.products),
         totalPrice,
         ...req.body,
       });
       await Cart.findOneAndDelete({ user: req.user._id });
-      return responseHelper.createdResponse(res, "Your order has been successfully placed");
+      return responseHelper.createdResponse(res, "Your order has been successfully placed", order);
     } catch (error) {
       next(error);
     }
   };
 
   //Get all orders (Super Admin)
+  //GET /orders?page=2&limit=20       ======>>>>> PAGINATION
   static getOrders: RequestHandler = async (req, res, next) => {
-    //Add filtering,Sorting and Pagination
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     try {
-      const orders = await Order.find();
+      const orders = await Order.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
       if (!orders || orders.length === 0) throw new NotFoundError("No order found");
       return responseHelper.successResponse(res, "Orders retrieved", orders);
     } catch (error) {
@@ -100,7 +85,7 @@ export default class Controller {
   };
 
   //Get a specific order by id
-  static getOrdersById: RequestHandler = async (req, res, next) => {
+  static getOrderById: RequestHandler = async (req, res, next) => {
     try {
       const order = await Order.findById(req.params._id);
       if (!order) throw new NotFoundError("No order found");
@@ -132,7 +117,7 @@ export default class Controller {
     try {
       const order = await Order.findById(req.params._id);
       if (!order) throw new NotFoundError("Order not found");
-      order.status = OrderStatus.PROCESSING;
+      order.status = OrderStatus.COMPLETED;
       order.payment.isPaid = true;
       order.payment.paidAt = new Date();
       order.payment.paymentResult = {
@@ -149,7 +134,9 @@ export default class Controller {
         cartItem.products.map((product) => ({
           updateOne: {
             filter: { _id: product.productId },
-            update: { $inc: { sales: +product.quantity } },
+            update: {
+              $inc: { sales: +product.quantity, availableQuantity: -product.quantity }, //This will correctly decrement the availableQuantity as the sales field is increased
+            },
           },
         }))
       );
@@ -173,6 +160,7 @@ export default class Controller {
       order.status = OrderStatus.DELIVERED;
       order.deliveredAt = new Date();
       await order.save();
+      //TODO: Send appreciative mail to the user
       return responseHelper.successResponse(res, "Your order has been Delivered 😊");
     } catch (error) {
       next(error);

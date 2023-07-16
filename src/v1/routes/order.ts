@@ -22,7 +22,7 @@ class OrderRoutes {
     this.router.get(
       "/:_id",
       validator(validatorSchema.verifyParamsId, "params"),
-      orderController.getOrdersById
+      orderController.getOrderById
     );
     this.router.get("/customer", orderController.getOrdersByUser);
     this.router.patch(
