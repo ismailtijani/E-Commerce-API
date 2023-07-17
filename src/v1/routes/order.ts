@@ -18,7 +18,6 @@ class OrderRoutes {
       validator(validatorSchema.createOrder, "body"),
       orderController.createOrder
     );
-    this.router.get("/", orderController.getOrders);
     this.router.get(
       "/:_id",
       validator(validatorSchema.verifyParamsId, "params"),

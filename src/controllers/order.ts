@@ -58,21 +58,6 @@ export default class Controller {
     }
   };
 
-  //Get all orders (Super Admin)
-  //GET /orders?page=2&limit=20       ======>>>>> PAGINATION
-  static getOrders: RequestHandler = async (req, res, next) => {
-    const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-    try {
-      const orders = await Order.find().sort({ createdAt: -1 }).skip(skip).limit(limit);
-      if (!orders || orders.length === 0) throw new NotFoundError("No order found");
-      return responseHelper.successResponse(res, "Orders retrieved", orders);
-    } catch (error) {
-      next(error);
-    }
-  };
-
   //Get all orders placed by a specific user
   static getOrdersByUser: RequestHandler = async (req, res, next) => {
     try {

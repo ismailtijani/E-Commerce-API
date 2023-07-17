@@ -7,7 +7,9 @@ class adminRoute {
     (this.router = Router()), this.registeredRoutes();
   }
   private registeredRoutes() {
-    this.router.get("/", adminController.summary);
+    this.router.get("/summary", adminController.summary);
+    this.router.get("/orders", adminController.getOrders);
+    this.router.get("/products", adminController.getAllProducts);
   }
 }
 

@@ -12,7 +12,6 @@ class ProductRoutes {
   }
 
   protected registeredRoutes() {
-    this.router.get("/", productController.getAllProducts);
     this.router.get(
       "/top_products",
       validator(validatorSchema.searchForTopProducts, "query"),
