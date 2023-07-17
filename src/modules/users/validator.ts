@@ -38,7 +38,12 @@ const userValidatorSchema = {
   }),
 
   login: Joi.object().keys({
-    email: Joi.string().email().required(),
+    email: Joi.string().email().required().messages({
+      "string.email": "Invalid email format",
+      "string.empty": "Email cannot be empty",
+      "string.base": "Email must be a string",
+      "any.required": "Email is required",
+    }),
     password: Joi.string().min(8).regex(strongPasswordRegex).required().label("Password").messages({
       "string.min": "Must have at least 8 characters",
       "object.regex": "Must have at least 8 characters",
@@ -108,7 +113,12 @@ const userValidatorSchema = {
   }),
 
   forgetPassword: Joi.object().keys({
-    email: Joi.string().email().required(),
+    email: Joi.string().email().required().messages({
+      "string.email": "Invalid email format",
+      "string.empty": "Email cannot be empty",
+      "string.base": "Email must be a string",
+      "any.required": "Email is required",
+    }),
   }),
 };
 

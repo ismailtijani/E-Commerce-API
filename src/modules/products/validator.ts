@@ -30,7 +30,7 @@ const validatorSchema = {
         "any.only":
           "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
       }),
-    countInStock: Joi.string().required().messages({
+    availableQuantity: Joi.string().required().messages({
       "string.empty": "Product count cannot be an empty",
       "any.required": "Product count is required",
       "string.base": "Count in stock must be a string",
@@ -94,7 +94,7 @@ const validatorSchema = {
       "string.empty": "Category cannot be an empty",
       "string.base": "Category must be a string",
     }),
-    countInStock: Joi.string().messages({
+    availableQuantity: Joi.string().messages({
       "string.empty": "Product count cannot be an empty",
       "string.base": "Count in stock must be a string",
     }),

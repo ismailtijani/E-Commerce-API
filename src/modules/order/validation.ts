@@ -2,11 +2,11 @@ import Joi from "joi";
 
 const validatorSchema = {
   createOrder: Joi.object().keys({
-    totalPrice: Joi.string().required().messages({
-      "string.empty": "Total Price cannot be an empty",
-      "any.required": "Total price is required",
-      "string.base": "Total Price must be a string",
-    }),
+    // totalPrice: Joi.string().required().messages({
+    //   "string.empty": "Total Price cannot be an empty",
+    //   "any.required": "Total price is required",
+    //   "string.base": "Total Price must be a string",
+    // }),
     paymentMethod: Joi.string()
       .regex(/^(cash|card)$/)
       .messages({ "string.pattern.base": "Payment can either be by 'card' or 'cash'" }),

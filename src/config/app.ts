@@ -9,6 +9,7 @@ import v1AuthRouter from "../v1/routes/auth";
 import v1userRouter from "../v1/routes/user";
 import v1productRouter from "../v1/routes/product";
 import v1CartRouter from "../v1/routes/cart";
+import v1adminRouter from "../v1/routes/admin";
 
 class App {
   public app: Application;
@@ -39,6 +40,7 @@ class App {
     this.app.get("/", (req, res) => {
       res.status(200).json({ message: "Welcome to the E Commerce API" });
     });
+    this.app.use("/api/v1/admin", v1adminRouter);
     this.app.use("/api/v1/accounts", v1AuthRouter);
     this.app.use("/api/v1/users", v1userRouter);
     this.app.use("/api/v1/products", v1productRouter);
