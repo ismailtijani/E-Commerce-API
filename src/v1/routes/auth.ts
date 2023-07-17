@@ -2,7 +2,7 @@ import { Router } from "express";
 import userValidatorSchema from "../../modules/users/validator";
 import validator from "../../middlewares/validator";
 import authController from "../../controllers/auth";
-import auth from "../../middlewares/auth";
+import Authentication from "../../middlewares/auth";
 
 class AuthRoutes {
   public router: Router;
@@ -28,7 +28,11 @@ class AuthRoutes {
       validator(userValidatorSchema.login, "body"),
       authController.loginAccess
     );
-    this.router.post("/login_success/:_id", auth.tokenVerification, authController.loginSuccess);
+    this.router.post(
+      "/login_success/:_id",
+      Authentication.tokenVerification,
+      authController.loginSuccess
+    );
     this.router.post(
       "/forget_password",
       validator(userValidatorSchema.forgetPassword, "body"),
@@ -41,7 +45,7 @@ class AuthRoutes {
       authController.resetPassword
     );
     //Every routes below will require authentication
-    this.router.use(auth.middleware);
+    this.router.use(Authentication.middleware);
     this.router.post("/logout", authController.logout);
     this.router.delete("/", authController.deleteProfile);
   }

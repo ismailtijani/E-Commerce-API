@@ -6,6 +6,7 @@ import RedisCache from "../config/redisCache";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
+import { UserLevelEnum } from "../enums";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -82,6 +83,30 @@ export default class Authentication {
       next(error);
     }
   };
+
+  static isAdmin(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (
+        req.user?.id === req.params.id ||
+        req.user?.userLevel === UserLevelEnum.isAdmin ||
+        req.user?.userLevel === UserLevelEnum.isSuperAdmin
+      ) {
+        next();
+      }
+      throw new BadRequestError({ message: "You are not allowed to perform this operation!" });
+    } catch (error) {
+      next(error);
+    }
+  }
+  /* access_level_verifier('admin') */
+  static isSuperAdmin(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (req.user.userLevel === UserLevelEnum.isSuperAdmin) next();
+      throw new BadRequestError({ message: "You are not allowed to perform this operation!" });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 // Fectching JsonwebToken secret

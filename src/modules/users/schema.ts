@@ -34,7 +34,7 @@ const userSchema = new Schema<IUser, UserModel, IUserMethods>(
       required: [true, "Phone number is required"],
     },
     imageUrl: String,
-    accountType: {
+    userLevel: {
       type: String,
       enum: Object.values(UserLevelEnum),
       default: UserLevelEnum.isUser,

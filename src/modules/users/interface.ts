@@ -11,7 +11,7 @@ export interface IUser {
   phoneNumber: string;
   imageUrl: string | undefined;
   confirmationCode: string | null;
-  accountType: UserLevelEnum;
+  userLevel: UserLevelEnum;
   status: AccountStatusEnum;
   resetPasswordToken: string | undefined;
   resetPasswordExpire: Date | undefined;

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import auth from "../../middlewares/auth";
+import Authentication from "../../middlewares/auth";
 import orderController from "../../controllers/order";
 import validator from "../../middlewares/validator";
 import validatorSchema from "../../modules/order/validation";
@@ -12,7 +12,7 @@ class OrderRoutes {
   }
 
   private registeredRoutes() {
-    this.router.use(auth.middleware);
+    this.router.use(Authentication.middleware);
     this.router.post(
       "/",
       validator(validatorSchema.createOrder, "body"),
