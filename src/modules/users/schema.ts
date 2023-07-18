@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { UserLevelEnum, AccountStatusEnum } from "../../enums";
 import { IUser, IUserMethods, UserDocument, UserModel } from "./interface";
 import BadRequestError from "../../utils/errors/badRequest";
+import Order from "../order/schema";
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {
@@ -119,7 +120,7 @@ userSchema.statics.findByCredentials = async (
 
 // Deleting User's records upon Deleting User Profile
 // userSchema.pre<UserDocument>("remove", async function (next) {
-//   await ModelName.deleteMany({ foreignField: this._id }); //Input model name and foreign field
+//   await Order.deleteMany({ foreignField: this._id }); //Input model name and foreign field
 //   Logger.warn(
 //     `All records created by ${this.name} has been deleted as the user deleted thier account`
 //   );
