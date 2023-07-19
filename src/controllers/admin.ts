@@ -4,6 +4,8 @@ import User from "../modules/users/schema";
 import Product from "../modules/products/schema";
 import { responseHelper } from "../utils/responseHelper";
 import NotFoundError from "../utils/errors/notFound";
+import RedisCache from "../config/redisCache";
+import { ADMIN } from "../constant";
 
 export default class Controller {
   // get all products uploaded by all users (Super Admin)
@@ -52,12 +54,23 @@ export default class Controller {
     }
 
     try {
+      //Check if data still lives
+      const response = await RedisCache.get(ADMIN);
+      if (response)
+        return responseHelper.successResponse(res, "Orders retrieved", {
+          orders: response.orders,
+          totalCount: response.totalCount,
+        });
+
+      //Fetch orders from database
       const [orders, totalCount] = await Promise.all([
         Order.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
         Order.countDocuments(query),
       ]);
 
       if (!orders || orders.length === 0) throw new NotFoundError("No order found");
+
+      await RedisCache.set(ADMIN, { orders, totalCount }, 60);
       return responseHelper.successResponse(res, "Orders retrieved", { orders, totalCount });
     } catch (error) {
       next(error);

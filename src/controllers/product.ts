@@ -5,15 +5,19 @@ import BadRequestError from "../utils/errors/badRequest";
 import { Sort } from "../modules/products/interface";
 import NotFoundError from "../utils/errors/notFound";
 import Order from "../modules/order/schema";
+import redisCache from "../config/redisCache";
+import { TOP_PRODUCT } from "../constant";
 
 export default class Controller {
   // create a new product by registered user
   static createProduct: RequestHandler = async (req, res, next) => {
+    const { _id } = req.user._id;
     try {
       const product = await Product.create({
         ...req.body,
-        seller: req.user._id,
+        seller: _id,
       });
+
       return responseHelper.createdResponse(res, "Product created succesfully", product);
     } catch (error: any) {
       // catch  E11000 duplicate key error
@@ -102,8 +106,12 @@ export default class Controller {
       { $limit: limit },
     ];
     try {
+      const results = await redisCache.get(TOP_PRODUCT);
+      if (results)
+        responseHelper.successResponse(res, "Top products fecthed successfully", results);
       const products = await Product.aggregate(pipeline);
       if (products.length === 0) throw new NotFoundError("No product found");
+      await redisCache.set(TOP_PRODUCT, products, 60 * 60);
       return responseHelper.successResponse(res, "Top products fecthed successfully", products);
     } catch (error) {
       next(error);

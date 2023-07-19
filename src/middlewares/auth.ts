@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import { statusCodes } from "../utils/interfaces";
 import User from "../modules/users/schema";
 import RedisCache from "../config/redisCache";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
@@ -19,22 +18,25 @@ export default class Authentication {
       // Verify Token
       const { _id } = <IPayload>jwt.verify(accessToken, JWT_SECRET);
 
+      if (!_id) throw new BadRequestError({ message: "Invalid or expired token" });
+
       //Check if token still lives
       const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
-      if (!token) throw new BadRequestError({ message: "Please Authenticate" });
+      if (!token) throw new BadRequestError({ message: "Invalid or expired token" });
 
       // Get user from database
       const user = await User.findById({ _id });
+      if (!user) throw new BadRequestError({ message: "Please Authenticate" });
       // Add user to request
-      if (user) req.user = user;
+      req.user = user;
       req.token = accessToken;
       next();
     } catch (error: any) {
-      if (error.name === "JsonWebTokenError")
-        return res.status(statusCodes.BAD_REQUEST).json({
-          STATUS: "FAILURE",
-          ERROR: "Invalid or expired token",
-        });
+      // if (error.name === "JsonWebTokenError")
+      //   return res.status(statusCodes.BAD_REQUEST).json({
+      //     STATUS: "FAILURE",
+      //     ERROR: "Invalid or expired token",
+      //   });
       next(error);
     }
   }
