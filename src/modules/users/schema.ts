@@ -4,7 +4,6 @@ import crypto from "crypto";
 import { UserLevelEnum, AccountStatusEnum } from "../../enums";
 import { IUser, IUserMethods, UserDocument, UserModel } from "./interface";
 import BadRequestError from "../../utils/errors/badRequest";
-import Order from "../order/schema";
 
 const userSchema = new Schema<IUser, UserModel, IUserMethods>(
   {

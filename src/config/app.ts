@@ -59,7 +59,6 @@ class App {
       Logger.info("DB Connection Successful");
       Logger.info(`'''''''''''''''''''''''''`);
     } catch (error: any) {
-      Logger.error(`MongoDB connection error: ${error.name}`);
       errorHandler.handleError(error);
     }
   }

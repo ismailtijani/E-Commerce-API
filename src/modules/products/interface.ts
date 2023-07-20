@@ -32,9 +32,5 @@ export interface IRating {
   userId: Types.ObjectId;
   rating: RatingEnum;
 }
-// type IMatch = {
-//   rating: RatingEnum;
-//   category: CategoryEnum;
-// };
 
 export type Sort = { [key: string]: number };

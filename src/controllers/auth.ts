@@ -36,7 +36,7 @@ export default class Controller {
       MailService.sendAccountActivationCode({ email, token });
 
       responseHelper.createdResponse(res, "Account created successfuly!");
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   };

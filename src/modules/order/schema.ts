@@ -28,11 +28,6 @@ const orderSchema = new Schema<IOrder>(
         enum: Object.values(PaymentMethod),
         default: PaymentMethod.CARD,
       },
-      // paymentStatus: {
-      //   type: String,
-      //   enum: Object.values(PaymentStatus),
-      //   default: PaymentStatus.PENDING,
-      // },
       isPaid: {
         type: Boolean,
         default: false,

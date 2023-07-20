@@ -31,7 +31,7 @@ export default class Authentication {
       req.user = user;
       req.token = accessToken;
       next();
-    } catch (error: any) {
+    } catch (error) {
       // if (error.name === "JsonWebTokenError")
       //   return res.status(statusCodes.BAD_REQUEST).json({
       //     STATUS: "FAILURE",

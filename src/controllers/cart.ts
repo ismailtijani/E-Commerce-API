@@ -17,7 +17,8 @@ export default class Controller {
       // check if the added quantity is greater than the available quantity
       if (product.availableQuantity < quantity) {
         throw new BadRequestError({
-          message: `Insufficient quantity, only ${product.availableQuantity} items are available. For more items, please contact the seller.`,
+          message: `Insufficient quantity, only ${product.availableQuantity} items are available.
+          For more items, please contact the seller.`,
         });
       }
       //Create a new cart or update an existing cart in a single operation
