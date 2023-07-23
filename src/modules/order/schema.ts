@@ -16,7 +16,7 @@ const orderSchema = new Schema<IOrder>(
         quantity: Number,
       },
     ],
-    // totalPrice: Number,
+    totalPrice: Number,
     status: {
       type: String,
       enum: Object.values(OrderStatus),
@@ -33,11 +33,7 @@ const orderSchema = new Schema<IOrder>(
         default: false,
       },
       paidAt: Date,
-      paymentResult: {
-        payerId: String,
-        paymentId: String,
-        orderId: String,
-      },
+      paymentId: String,
     },
     deliveryPrice: Number,
     deliveredAt: Date,

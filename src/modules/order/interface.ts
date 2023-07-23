@@ -8,17 +8,12 @@ export interface IOrder {
       quantity: number;
     }
   ];
-  // totalPrice: number;
+  totalPrice: number;
   payment: {
     paymentMethod: PaymentMethod;
-    // paymentStatus: PaymentStatus;
     isPaid: boolean;
     paidAt: Date;
-    paymentResult: {
-      orderId: string;
-      payerId: string;
-      paymentId: string;
-    };
+    paymentId: string;
   };
   deliveryPrice: number;
   status: OrderStatus;

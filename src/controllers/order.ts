@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { RequestHandler } from "express";
 import NotFoundError from "../utils/errors/notFound";
 import Order from "../modules/order/schema";
@@ -10,6 +11,7 @@ import Cart from "../modules/carts/schema";
 export default class Controller {
   // create a new order showing products, total price of products and user details
   static createOrder: RequestHandler = async (req, res, next) => {
+    const { deliveryPrice, address, city, country } = req.body;
     try {
       // Get the cart of the user
       await req.user.populate("cart");
@@ -43,13 +45,19 @@ export default class Controller {
       // create commission
       const commission = (costTotal * 0.05).toFixed(2);
       // total price
-      const totalPrice = (costTotal + Number(commission)).toFixed(2);
-
+      const totalPrice = (costTotal + Number(commission) + Number(deliveryPrice)).toFixed(2);
+      //Generate a reference ID i.e PaymentId
+      const paymentId = crypto.randomBytes(9).toString("hex");
       const order = await Order.create({
         userId: req.user._id,
         products: carts.flatMap((cartItem) => cartItem.products),
         totalPrice,
-        ...req.body,
+        payment: { paymentId },
+        shipping: {
+          address,
+          city,
+          country,
+        },
       });
       await Cart.findOneAndDelete({ user: req.user._id });
       return responseHelper.createdResponse(res, "Your order has been successfully placed", order);
@@ -105,11 +113,6 @@ export default class Controller {
       order.status = OrderStatus.COMPLETED;
       order.payment.isPaid = true;
       order.payment.paidAt = new Date();
-      order.payment.paymentResult = {
-        orderId: order._id.toString(),
-        payerId: req.user._id,
-        paymentId: "******",
-      };
       await order.save();
       //Track the number of times a product has been sold
       // await req.user.populate("carts")
