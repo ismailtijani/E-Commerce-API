@@ -1,10 +1,11 @@
-import { RequestHandler } from "express";
+import { Request, RequestHandler } from "express";
 import Paystack from "paystack";
 import Order from "../modules/order/schema";
 import BadRequestError from "../utils/errors/badRequest";
 import { responseHelper } from "../utils/responseHelper";
 import ServerError from "../utils/errors/serverError";
 import crypto from "crypto";
+import orderController from "../controllers/order";
 
 // Initialize Paystack with your API key
 const secret = process.env.PAYSTACK_MAIN_KEY as string;
@@ -49,13 +50,20 @@ export default class Payment {
         const { event, data } = req.body;
         if (event === "charge.success") {
           const { reference } = data;
-          const order = await Order.findOne({ reference });
-          if (!order) throw new BadRequestError({ message: "Order not found" });
+          // Set the reference as a route parameter
+          const mockReq = {
+            params: { reference },
+          } as Request<{ reference: string }, any, any, any, any>;
+
+          orderController.updateOrderAfterDelivery(mockReq, res, next);
         }
-        res.send(200);
+        return res.send(200);
       }
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: "An error occurred while initializing payment.",
+        message: error.message,
+      });
     }
   };
 }

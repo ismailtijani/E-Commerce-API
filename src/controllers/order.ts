@@ -108,7 +108,7 @@ export default class Controller {
   //Update an order after payment confirmation
   static updateOrderAfterPayment: RequestHandler = async (req, res, next) => {
     try {
-      const order = await Order.findById(req.params._id);
+      const order = await Order.findOne({ "payment.paymentId": req.params.reference });
       if (!order) throw new NotFoundError("Order not found");
       order.status = OrderStatus.COMPLETED;
       order.payment.isPaid = true;
@@ -134,6 +134,7 @@ export default class Controller {
       console.log(updated);
       //Delete cart
       await Cart.findOneAndDelete({ user: req.user._id });
+      //Send an Email to the user to confrim payment
       return responseHelper.successResponse(res, "Payment recieved, Order in process...", order);
     } catch (error) {
       next(error);
