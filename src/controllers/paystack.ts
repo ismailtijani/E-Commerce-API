@@ -6,6 +6,7 @@ import { responseHelper } from "../utils/responseHelper";
 import ServerError from "../utils/errors/serverError";
 import crypto from "crypto";
 import orderController from "../controllers/order";
+import Logger from "../utils/logger";
 
 // Initialize Paystack with your API key
 const secret = process.env.PAYSTACK_MAIN_KEY as string;
@@ -25,6 +26,8 @@ export default class Payment {
         currency: "NGN",
         reference: order.payment.paymentId,
       });
+
+      Logger.info(paymentResponse);
 
       // Check if payment initialization was successful
       if (!paymentResponse.status || !paymentResponse.data.authorization_url) {
