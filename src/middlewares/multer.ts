@@ -2,6 +2,7 @@ import { Request } from "express";
 import multer from "multer";
 import multerS3 from "multer-s3";
 import s3 from "../config/aws";
+import "dotenv/config";
 import BadRequestError from "../utils/errors/badRequest";
 
 const upload = () => {
@@ -26,6 +27,7 @@ const upload = () => {
         file.originalname +
         "." +
         file.mimetype.split("/")[1];
+      console.log("Generated Key:", fileName);
       cb(null, fileName);
     },
   });

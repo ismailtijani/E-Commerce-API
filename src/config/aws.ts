@@ -1,4 +1,5 @@
 import { S3 } from "@aws-sdk/client-s3";
+import "dotenv/config";
 
 export default new S3({
   forcePathStyle: true,
