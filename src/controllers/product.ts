@@ -17,7 +17,6 @@ export default class Controller {
         ...req.body,
         seller: _id,
       });
-
       return responseHelper.createdResponse(res, "Product created succesfully", product);
     } catch (error: any) {
       // catch  E11000 duplicate key error
@@ -78,6 +77,7 @@ export default class Controller {
         new: true,
         runValidators: true,
       });
+
       if (!updatedData) throw new BadRequestError({ message: "Update failed" });
       return responseHelper.successResponse(res, "Product updated successfully✅", updatedData);
     } catch (error) {
@@ -118,9 +118,9 @@ export default class Controller {
     }
   };
 
-  // advance search for products (Admin & Vendor)
+  // advance search for products
   static advanceSearch: RequestHandler = async (req, res, next) => {
-    const { name, category } = req.params;
+    const { name, category } = req.query as { name: string; category: string };
     try {
       const product = await Product.find({
         name: {

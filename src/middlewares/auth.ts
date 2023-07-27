@@ -6,6 +6,7 @@ import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
 import { UserLevelEnum } from "../enums";
+import { statusCodes } from "../utils/interfaces";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -18,8 +19,6 @@ export default class Authentication {
       // Verify Token
       const { _id } = <IPayload>jwt.verify(accessToken, JWT_SECRET);
 
-      if (!_id) throw new BadRequestError({ message: "Invalid or expired token" });
-
       //Check if token still lives
       const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
       if (!token) throw new BadRequestError({ message: "Invalid or expired token" });
@@ -31,12 +30,12 @@ export default class Authentication {
       req.user = user;
       req.token = accessToken;
       next();
-    } catch (error) {
-      // if (error.name === "JsonWebTokenError")
-      //   return res.status(statusCodes.BAD_REQUEST).json({
-      //     STATUS: "FAILURE",
-      //     ERROR: "Invalid or expired token",
-      //   });
+    } catch (error: any) {
+      if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError")
+        return res.status(statusCodes.BAD_REQUEST).json({
+          STATUS: "FAILURE",
+          ERROR: "Invalid or expired token",
+        });
       next(error);
     }
   }
@@ -94,8 +93,8 @@ export default class Authentication {
         req.user?.userLevel === UserLevelEnum.isSuperAdmin
       ) {
         next();
-      }
-      throw new BadRequestError({ message: "You are not allowed to perform this operation!" });
+      } else
+        throw new BadRequestError({ message: "You are not allowed to perform this operation!" });
     } catch (error) {
       next(error);
     }

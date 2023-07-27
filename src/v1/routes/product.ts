@@ -19,7 +19,7 @@ class ProductRoutes {
     );
     this.router.get(
       "/search",
-      validator(validatorSchema.search, "params"),
+      validator(validatorSchema.search, "query"),
       productController.advanceSearch
     );
     //Every routes below will require authentication

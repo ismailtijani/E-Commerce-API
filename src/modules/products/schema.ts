@@ -40,9 +40,8 @@ const productSchema = new Schema<IProduct>(
         ref: "User",
       },
       rating: {
-        type: Number,
+        type: String,
         enum: Object.values(RatingEnum),
-        default: 0,
       },
     },
     reviews: [
