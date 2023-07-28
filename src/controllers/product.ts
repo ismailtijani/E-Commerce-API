@@ -124,11 +124,11 @@ export default class Controller {
     try {
       const product = await Product.find({
         name: {
-          $regex: name,
+          $regex: `${name}`,
           $options: "i",
         },
         category: {
-          $regex: category,
+          $regex: `${category}`,
           $options: "i",
         },
       });
