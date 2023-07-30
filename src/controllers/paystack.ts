@@ -16,7 +16,7 @@ export default class Payment {
   static payment: RequestHandler = async (req, res, next) => {
     try {
       const order = await Order.findById(req.query.orderId);
-      if (!order) throw new BadRequestError({ message: "Order not found" });
+      if (!order) throw new BadRequestError("Order not found");
 
       // Call Paystack to initialize payment
       const paymentResponse = await paystack.transaction.initialize({

@@ -14,7 +14,7 @@ export default class Controller {
   static uploadProfilePhoto: RequestHandler = async (req, res, next) => {
     const user = req.user;
     try {
-      if (!req.file) throw new BadRequestError({ message: " Invalid input" });
+      if (!req.file) throw new BadRequestError("Invalid input");
 
       if ("location" in req.file && "key" in req.file) {
         user.imageUrl = req.file.location as string;
@@ -25,7 +25,7 @@ export default class Controller {
         });
       }
       // Internal Server Error(Change statuscode)
-      throw new BadRequestError({ message: "Failed to save user profile photo" });
+      throw new BadRequestError("Failed to save user profile photo");
     } catch (error) {
       next(error);
     }
@@ -79,9 +79,9 @@ export default class Controller {
     const updates = Object.keys(req.body);
     const allowedUpdates = ["firstName", "lastName", "phoneNumber", "password"];
     try {
-      if (updates.length === 0) throw new BadRequestError({ message: "Invalid update!" });
+      if (updates.length === 0) throw new BadRequestError("Invalid update!");
       const isValidOperation = updates.every((update) => allowedUpdates.includes(update));
-      if (!isValidOperation) throw new BadRequestError({ message: "Invalid update" });
+      if (!isValidOperation) throw new BadRequestError("Invalid update");
       const user: any = req.user;
       updates.forEach((update) => (user[update] = req.body[update]));
       await user.save();

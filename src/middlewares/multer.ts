@@ -8,7 +8,7 @@ import BadRequestError from "../utils/errors/badRequest";
 const upload = () => {
   const fileFilter = (req: Request, file: any, cb: any) => {
     if (!file.originalname.match(/\.(png|jpg|jpeg)$/)) {
-      return cb(new BadRequestError({ message: "Invalid file format, Please upload an Image" }));
+      return cb(new BadRequestError("Invalid file format, Please upload an Image"));
     }
     cb(null, true);
   };

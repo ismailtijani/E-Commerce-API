@@ -36,9 +36,9 @@ export default class Controller {
           if (!foundProduct)
             throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
           if (foundProduct.availableQuantity < product.quantity)
-            throw new BadRequestError({
-              message: `Insufficient quantity for product with ID ${product.productId}.`,
-            });
+            throw new BadRequestError(
+              `Insufficient quantity for product with ID ${product.productId}.`
+            );
           costTotal += foundProduct?.price * product.quantity;
         }
       }
@@ -93,12 +93,12 @@ export default class Controller {
     const updates = Object.keys(req.body);
     try {
       //Check if updates are provided
-      if (updates.length === 0) throw new BadRequestError({ message: "Invalid update!" });
+      if (updates.length === 0) throw new BadRequestError("Invalid update!");
       const updatedOrder = await Order.findByIdAndUpdate(req.params._id, req.body, {
         new: true,
         runValidators: true,
       });
-      if (!updatedOrder) throw new BadRequestError({ message: "Update failed" });
+      if (!updatedOrder) throw new BadRequestError("Update failed");
       return responseHelper.successResponse(res, "Order updated successfully ✅", updatedOrder);
     } catch (error) {
       next(error);

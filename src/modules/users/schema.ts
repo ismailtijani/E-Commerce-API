@@ -106,14 +106,11 @@ userSchema.statics.findByCredentials = async (
   password: IUser["password"]
 ) => {
   const user = await User.findOne({ email });
-  if (!user)
-    throw new BadRequestError({ message: "No Account with this credentials, kindly signup" });
+  if (!user) throw new BadRequestError("No Account with this credentials, kindly signup");
   if (user && user.status !== AccountStatusEnum.ACTIVATED)
-    throw new BadRequestError({
-      message: "Account not activated, kindly check your mail for activation link",
-    });
+    throw new BadRequestError("Account not activated, kindly check your mail for activation link");
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new BadRequestError({ message: "Email or Password is incorrect" });
+  if (!isMatch) throw new BadRequestError("Email or Password is incorrect");
   return user;
 };
 

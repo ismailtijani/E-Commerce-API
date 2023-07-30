@@ -21,11 +21,11 @@ export default class Authentication {
 
       //Check if token still lives
       const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
-      if (!token) throw new BadRequestError({ message: "Invalid or expired token" });
+      if (!token) throw new BadRequestError("Invalid or expired token");
 
       // Get user from database
       const user = await User.findById({ _id });
-      if (!user) throw new BadRequestError({ message: "Please Authenticate" });
+      if (!user) throw new BadRequestError("Please Authenticate");
       // Add user to request
       req.user = user;
       req.token = accessToken;
@@ -66,10 +66,9 @@ export default class Authentication {
     try {
       //Fetch and Validate 2FAuth token
       const { confirmationCode } = await RedisCache.get(AUTH_PREFIX + _id);
-      if (!confirmationCode)
-        throw new BadRequestError({ message: "Auth Code expired or does not exist" });
+      if (!confirmationCode) throw new BadRequestError("Auth Code expired or does not exist");
 
-      if (authToken !== confirmationCode) throw new BadRequestError({ message: "Invalid code" });
+      if (authToken !== confirmationCode) throw new BadRequestError("Invalid code");
       //Delete Confirmation code
       await RedisCache.del(AUTH_PREFIX + _id);
       // Fetch user data
@@ -93,8 +92,7 @@ export default class Authentication {
         req.user?.userLevel === UserLevelEnum.isSuperAdmin
       ) {
         next();
-      } else
-        throw new BadRequestError({ message: "You are not allowed to perform this operation!" });
+      } else throw new BadRequestError("You are not allowed to perform this operation!");
     } catch (error) {
       next(error);
     }
@@ -103,7 +101,7 @@ export default class Authentication {
   static isSuperAdmin(req: Request, res: Response, next: NextFunction) {
     try {
       if (req.user.userLevel === UserLevelEnum.isSuperAdmin) next();
-      throw new BadRequestError({ message: "You are not allowed to perform this operation!" });
+      throw new BadRequestError("You are not allowed to perform this operation!");
     } catch (error) {
       next(error);
     }

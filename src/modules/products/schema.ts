@@ -61,6 +61,7 @@ const productSchema = new Schema<IProduct>(
   },
   { timestamps: true }
 );
-
+//indexing to improve the performance of queries on name and category fields
+productSchema.index({ name: 1, category: 1 });
 const Product = model<IProduct>("Product", productSchema);
 export default Product;

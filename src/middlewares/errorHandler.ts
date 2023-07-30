@@ -5,6 +5,7 @@ import { statusCodes } from "../utils/interfaces";
 import BadRequestError from "../utils/errors/badRequest";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import ServerError from "../utils/errors/serverError";
+import NotFoundError from "../utils/errors/notFound";
 
 export class ErrorHandler {
   private isTrustedError(error: Error | AppError) {
@@ -33,6 +34,11 @@ export class ErrorHandler {
         MESSAGE: error.message,
       });
     } else if (error instanceof ServerError) {
+      return res.status(error.statusCode).json({
+        STATUS: "FAILURE",
+        MESSAGE: error.message,
+      });
+    } else if (error instanceof NotFoundError) {
       return res.status(error.statusCode).json({
         STATUS: "FAILURE",
         MESSAGE: error.message,

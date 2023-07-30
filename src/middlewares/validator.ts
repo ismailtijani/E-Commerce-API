@@ -13,7 +13,7 @@ function validator(schema: ObjectSchema, property: keyof Request) {
     } else {
       const { details } = error;
       const message: string = details.map((i: ValidationErrorItem) => i.message).join(",");
-      throw new BadRequestError({ message });
+      throw new BadRequestError(message);
     }
   };
 }

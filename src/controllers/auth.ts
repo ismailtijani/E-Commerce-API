@@ -18,13 +18,11 @@ export default class Controller {
       const existingUser = await User.findOne({ email });
 
       if (existingUser && existingUser.status === AccountStatusEnum.PENDING) {
-        throw new BadRequestError({
-          message: "An Account Already Exist with this details, kindly verify your account",
-        });
+        throw new BadRequestError(
+          "An Account Already Exist with this details, kindly verify your account"
+        );
       } else if (existingUser && existingUser.status === AccountStatusEnum.ACTIVATED) {
-        throw new BadRequestError({
-          message: "User alredy exist, Kindly login",
-        });
+        throw new BadRequestError("User alredy exist, Kindly login");
       }
       //Create User account
       const user = await User.create(req.body);
@@ -46,7 +44,7 @@ export default class Controller {
 
     try {
       const user = await User.findOne({ confirmationCode });
-      if (!user) throw new BadRequestError({ message: "Invalid or Expired confirmation code" });
+      if (!user) throw new BadRequestError("Invalid or Expired confirmation code");
 
       const updateData = { status: AccountStatusEnum.ACTIVATED, confirmationCode: null };
       await User.findOneAndUpdate({ _id: user._id }, updateData, {
@@ -117,7 +115,7 @@ export default class Controller {
     const { email } = req.body as { email: IUser["email"] };
     // Search for user Account
     const user = await User.findOne({ email });
-    if (!user) throw new BadRequestError({ message: "Sorry, we don't recognize this account" });
+    if (!user) throw new BadRequestError("Sorry, we don't recognize this account");
     //Generate reset Password Token
     const resetToken = await user.generateResetPasswordToken();
 
@@ -149,7 +147,7 @@ export default class Controller {
         resetPasswordExpire: { $gt: Date.now() },
       });
 
-      if (!user) throw new BadRequestError({ message: "Invalid or Expired Token" });
+      if (!user) throw new BadRequestError("Invalid or Expired Token");
       // Set new password
       user.password = req.body.password;
       user.resetPasswordToken = undefined;

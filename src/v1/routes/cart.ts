@@ -14,16 +14,22 @@ class CartRoutes {
 
   protected registeredRoutes() {
     this.router.use(auth.middleware);
-    this.router.post("/", validator(validatorSchema.addCart, "body"), cartController.addCart);
+    this.router.post(
+      "/",
+      validator(validatorSchema.addCart, "body"),
+      cartController.checkIfProductExist,
+      cartController.addCart
+    );
     this.router.get("/", cartController.viewCart);
     this.router.patch(
-      "/",
+      "/:_id",
       validator(validatorSchema.verifyParamsId, "params"),
       validator(validatorSchema.update, "body"),
+      cartController.checkIfProductExist,
       cartController.updateCart
     );
     this.router.delete(
-      "/",
+      "/:_id",
       validator(validatorSchema.verifyParamsId, "params"),
       cartController.deleteCart
     );

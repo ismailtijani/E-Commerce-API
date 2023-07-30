@@ -48,7 +48,7 @@ export default class Controller {
       //Get all user products
       const products = req.user?.products;
       if (!products || products?.length === 0)
-        throw new BadRequestError({ message: "No product found, do upload some products 😊" });
+        throw new NotFoundError("No product found, do upload some products 😊");
 
       return responseHelper.successResponse(res, "All products fetched", products);
     } catch (error) {
@@ -72,13 +72,13 @@ export default class Controller {
     const updates = Object.keys(req.body);
     try {
       //Check if updates are provided
-      if (updates.length === 0) throw new BadRequestError({ message: "Invalid update!" });
+      if (updates.length === 0) throw new BadRequestError("Invalid update!");
       const updatedData = await Product.findOneAndUpdate({ _id: req.params._id }, req.body, {
         new: true,
         runValidators: true,
       });
 
-      if (!updatedData) throw new BadRequestError({ message: "Update failed" });
+      if (!updatedData) throw new BadRequestError("Update failed");
       return responseHelper.successResponse(res, "Product updated successfully✅", updatedData);
     } catch (error) {
       next(error);
@@ -111,7 +111,7 @@ export default class Controller {
         responseHelper.successResponse(res, "Top products fecthed successfully", results);
       const products = await Product.aggregate(pipeline);
       if (products.length === 0) throw new NotFoundError("No product found");
-      await redisCache.set(TOP_PRODUCT, products, 60 * 60);
+      await redisCache.set(TOP_PRODUCT, products, 24 * 60 * 60);
       return responseHelper.successResponse(res, "Top products fecthed successfully", products);
     } catch (error) {
       next(error);
@@ -122,18 +122,19 @@ export default class Controller {
   static advanceSearch: RequestHandler = async (req, res, next) => {
     const { name, category } = req.query as { name: string; category: string };
     try {
-      const product = await Product.find({
-        name: {
-          $regex: `${name}`,
-          $options: "i",
+      const products = await Product.aggregate([
+        {
+          $match: {
+            $or: [
+              { name: { $regex: `${name}`, $options: "i" } },
+              { category: { $regex: `${category}`, $options: "i" } },
+            ],
+          },
         },
-        category: {
-          $regex: `${category}`,
-          $options: "i",
-        },
-      });
-      if (!product) throw new BadRequestError({ message: "Product not found" });
-      responseHelper.successResponse(res, "Product fetched successfully", product);
+      ]);
+
+      if (!products) throw new BadRequestError("Products not found");
+      responseHelper.successResponse(res, "Products fetched successfully", products);
     } catch (error) {
       next(error);
     }
@@ -151,9 +152,7 @@ export default class Controller {
         // status: "completed",
       });
       if (!hasPurchased)
-        throw new BadRequestError({
-          message: "You can only review and rate products you have purchased",
-        });
+        throw new BadRequestError("You can only review and rate products you have purchased");
       const product = await Product.findByIdAndUpdate(
         { _id, "ratings.userId": { $ne: userId } },
         {

@@ -1,12 +1,12 @@
 import AppError from "./appError";
-import { statusCodes, AppErrorArgs } from "../interfaces";
+import { statusCodes } from "../interfaces";
 
 export default class BadRequestError extends AppError {
-  public name: string;
+  // public name: string;
   public readonly statusCode: statusCodes;
-  constructor(args: AppErrorArgs) {
-    super(args.message);
+  constructor(message: string) {
+    super(message);
     this.statusCode = statusCodes.BAD_REQUEST;
-    this.name = args.name || "Error";
+    // this.name = args.name || "Error";
   }
 }
