@@ -2,35 +2,28 @@ import Joi from "joi";
 
 const validatorSchema = {
   createOrder: Joi.object().keys({
-    // totalPrice: Joi.string().required().messages({
-    //   "string.empty": "Total Price cannot be an empty",
-    //   "any.required": "Total price is required",
-    //   "string.base": "Total Price must be a string",
-    // }),
     paymentMethod: Joi.string()
       .regex(/^(cash|card)$/)
       .messages({ "string.pattern.base": "Payment can either be by 'card' or 'cash'" }),
-    deliveryPrice: Joi.string().required().messages({
-      "string.empty": "Delivery Price cannot be an empty",
+    deliveryPrice: Joi.number().required().messages({
+      "number.empty": "Delivery Price cannot be an empty",
       "any.required": "Delivery price is required",
-      "string.base": "Delivery Price must be a string",
+      "number.base": "Delivery Price must be a number",
     }),
-    shipping: Joi.object({
-      address: Joi.string().required().messages({
-        "string.empty": "Address cannot be an empty",
-        "any.required": "Address is required",
-        "string.base": "Address must be a string",
-      }),
-      city: Joi.string().required().messages({
-        "string.empty": "City cannot be an empty",
-        "any.required": "City is required",
-        "string.base": "City must be a string",
-      }),
-      country: Joi.string().required().messages({
-        "string.empty": "Country cannot be an empty",
-        "any.required": "Country is required",
-        "string.base": "Country must be a string",
-      }),
+    address: Joi.string().required().messages({
+      "string.empty": "Address cannot be an empty",
+      "any.required": "Address is required",
+      "string.base": "Address must be a string",
+    }),
+    city: Joi.string().required().messages({
+      "string.empty": "City cannot be an empty",
+      "any.required": "City is required",
+      "string.base": "City must be a string",
+    }),
+    country: Joi.string().required().messages({
+      "string.empty": "Country cannot be an empty",
+      "any.required": "Country is required",
+      "string.base": "Country must be a string",
     }),
   }),
 
@@ -45,27 +38,17 @@ const validatorSchema = {
     paymentMethod: Joi.string()
       .regex(/^(cash|card)$/)
       .messages({ "string.pattern.base": "Payment can either be by 'card' or 'cash'" }),
-    deliveryPrice: Joi.string().required().messages({
-      "string.empty": "Delivery Price cannot be an empty",
-      "any.required": "Delivery price is required",
-      "string.base": "Delivery Price must be a string",
+    address: Joi.string().messages({
+      "string.empty": "Address cannot be an empty",
+      "string.base": "Address must be a string",
     }),
-    shipping: Joi.object({
-      address: Joi.string().required().messages({
-        "string.empty": "Address cannot be an empty",
-        "any.required": "Address is required",
-        "string.base": "Address must be a string",
-      }),
-      city: Joi.string().required().messages({
-        "string.empty": "City cannot be an empty",
-        "any.required": "City is required",
-        "string.base": "City must be a string",
-      }),
-      country: Joi.string().required().messages({
-        "string.empty": "Country cannot be an empty",
-        "any.required": "Country is required",
-        "string.base": "Country must be a string",
-      }),
+    city: Joi.string().messages({
+      "string.empty": "City cannot be an empty",
+      "string.base": "City must be a string",
+    }),
+    country: Joi.string().messages({
+      "string.empty": "Country cannot be an empty",
+      "string.base": "Country must be a string",
     }),
   }),
 };

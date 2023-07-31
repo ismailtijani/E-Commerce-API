@@ -10,6 +10,8 @@ import v1userRouter from "../v1/routes/user";
 import v1productRouter from "../v1/routes/product";
 import v1CartRouter from "../v1/routes/cart";
 import v1adminRouter from "../v1/routes/admin";
+import v1OrderRouter from "../v1/routes/order";
+import V1PaymentRouter from "../v1/routes/paystack";
 
 class App {
   public app: Application;
@@ -45,6 +47,8 @@ class App {
     this.app.use("/api/v1/users", v1userRouter);
     this.app.use("/api/v1/products", v1productRouter);
     this.app.use("/api/v1/carts", v1CartRouter);
+    this.app.use("/api/v1/orders", v1OrderRouter);
+    this.app.use("/api/v1/payments", V1PaymentRouter);
     // set up global error handling here
     this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
       errorHandler.handleError(error, res);

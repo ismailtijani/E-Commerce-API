@@ -18,17 +18,11 @@ class OrderRoutes {
       validator(validatorSchema.createOrder, "body"),
       orderController.createOrder
     );
+    this.router.get("/customer", orderController.getOrdersByUser);
     this.router.get(
       "/:_id",
       validator(validatorSchema.verifyParamsId, "params"),
       orderController.getOrderById
-    );
-    this.router.get("/customer", orderController.getOrdersByUser);
-    this.router.patch(
-      "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
-      validator(validatorSchema.update, "body"),
-      orderController.updateOrder
     );
     this.router.patch(
       "/:_id/payment",
@@ -39,6 +33,12 @@ class OrderRoutes {
       "/:_id/delivery",
       validator(validatorSchema.verifyParamsId, "params"),
       orderController.updateOrderAfterDelivery
+    );
+    this.router.patch(
+      "/:_id",
+      validator(validatorSchema.verifyParamsId, "params"),
+      validator(validatorSchema.update, "body"),
+      orderController.updateOrder
     );
     this.router.delete(
       "/:_id",

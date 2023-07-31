@@ -7,6 +7,7 @@ import BadRequestError from "../utils/errors/badRequest";
 import { OrderStatus } from "../modules/order/interface";
 import Product from "../modules/products/schema";
 import Cart from "../modules/carts/schema";
+import Logger from "../utils/logger";
 
 export default class Controller {
   // create a new order showing products, total price of products and user details
@@ -14,7 +15,7 @@ export default class Controller {
     const { deliveryPrice, address, city, country } = req.body;
     try {
       // Get the cart of the user
-      await req.user.populate("cart");
+      await req.user.populate("carts");
       const carts = req.user.carts;
       if (!carts || carts.length === 0)
         throw new NotFoundError("Cart is empty. Kindly add some products 😊");
@@ -23,16 +24,20 @@ export default class Controller {
       const productIds = carts.flatMap((cartItem) =>
         cartItem.products.map((product) => product.productId)
       );
+      Logger.info(productIds);
       const products = await Product.find({
         _id: { $in: productIds },
         availableQuantity: { $gte: 1 },
       });
+      Logger.warn(products);
       // Check product availability and quantity, and calculate total price
       let costTotal = 0;
       for (const cartItem of carts) {
         for (const product of cartItem.products) {
           // Get the price of a product by its ID
-          const foundProduct = products.find((prd) => prd._id === product.productId);
+          const foundProduct = products.find(
+            (prd) => prd._id.toString() === product.productId.toString()
+          );
           if (!foundProduct)
             throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
           if (foundProduct.availableQuantity < product.quantity)
@@ -135,7 +140,7 @@ export default class Controller {
       //Delete cart
       await Cart.findOneAndDelete({ user: req.user._id });
       //Send an Email to the user to confrim payment
-      return responseHelper.successResponse(res, "Payment recieved, Order in process...", order);
+      return responseHelper.successResponse(res, "Payment recieved, delivery in process...", order);
     } catch (error) {
       next(error);
     }

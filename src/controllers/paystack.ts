@@ -15,7 +15,7 @@ const paystack = Paystack(secret);
 export default class Payment {
   static payment: RequestHandler = async (req, res, next) => {
     try {
-      const order = await Order.findById(req.query.orderId);
+      const order = await Order.findById(req.params.orderId);
       if (!order) throw new BadRequestError("Order not found");
 
       // Call Paystack to initialize payment
@@ -26,8 +26,6 @@ export default class Payment {
         currency: "NGN",
         reference: order.payment.paymentId,
       });
-
-      Logger.info(paymentResponse);
 
       // Check if payment initialization was successful
       if (!paymentResponse.status || !paymentResponse.data.authorization_url) {
@@ -47,10 +45,13 @@ export default class Payment {
   static paymentStatus: RequestHandler = async (req, res, next) => {
     //validate event
     const hash = crypto.createHmac("sha512", secret).update(JSON.stringify(req.body)).digest("hex");
+    Logger.info(hash);
     try {
       if (hash == req.headers["x-paystack-signature"]) {
         // Retrieve the request's body
         const { event, data } = req.body;
+        Logger.warn(event);
+        Logger.info(data);
         if (event === "charge.success") {
           const { reference } = data;
           // Set the reference as a route parameter
@@ -58,7 +59,7 @@ export default class Payment {
             params: { reference },
           } as Request<{ reference: string }, any, any, any, any>;
 
-          orderController.updateOrderAfterDelivery(mockReq, res, next);
+          orderController.updateOrderAfterPayment(mockReq, res, next);
         }
         return res.send(200);
       }
