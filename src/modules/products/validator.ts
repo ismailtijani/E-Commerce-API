@@ -7,10 +7,10 @@ const validatorSchema = {
       "any.required": "Product name is required",
       "string.base": "Product name must be a string",
     }),
-    price: Joi.string().required().messages({
-      "string.empty": "Product price cannot be an empty",
+    price: Joi.number().required().messages({
+      "number.empty": "Product price cannot be an empty",
       "any.required": "Product price is required",
-      "string.base": "Price must be a string",
+      "number.base": "Price must be a number",
     }),
     description: Joi.string().required().messages({
       "string.empty": "Product description cannot be an empty",
@@ -30,10 +30,10 @@ const validatorSchema = {
         "any.only":
           "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
       }),
-    availableQuantity: Joi.string().required().messages({
-      "string.empty": "Product count cannot be an empty",
+    availableQuantity: Joi.number().required().messages({
+      "number.empty": "Product count cannot be an empty",
       "any.required": "Product count is required",
-      "string.base": "Count in stock must be a string",
+      "number.base": "Count in stock must be a number",
     }),
   }),
 
@@ -78,9 +78,9 @@ const validatorSchema = {
       "string.empty": "Product name cannot be an empty",
       "string.base": "Product name must be a string",
     }),
-    price: Joi.string().messages({
-      "string.empty": "Product price cannot be an empty",
-      "string.base": "Price must be a string",
+    price: Joi.number().messages({
+      "number.empty": "Product price cannot be an empty",
+      "number.base": "Price must be a string",
     }),
     description: Joi.string().messages({
       "string.empty": "Product description cannot be an empty",
@@ -94,9 +94,9 @@ const validatorSchema = {
       "string.empty": "Category cannot be an empty",
       "string.base": "Category must be a string",
     }),
-    availableQuantity: Joi.string().messages({
-      "string.empty": "Product count cannot be an empty",
-      "string.base": "Count in stock must be a string",
+    availableQuantity: Joi.number().messages({
+      "number.empty": "Product count cannot be an empty",
+      "number.base": "Count in stock must be a string",
     }),
   }),
 };
