@@ -3,6 +3,8 @@ import Authentication from "../../middlewares/auth";
 import orderController from "../../controllers/order";
 import validator from "../../middlewares/validator";
 import validatorSchema from "../../modules/order/validation";
+import validateId from "../../utils/validID";
+
 class OrderRoutes {
   public router: Router;
 
@@ -21,28 +23,33 @@ class OrderRoutes {
     this.router.get("/customer", orderController.getOrdersByUser);
     this.router.get(
       "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       orderController.getOrderById
     );
     this.router.patch(
       "/:_id/payment",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       orderController.updateOrderAfterPayment
     );
     this.router.patch(
       "/:_id/delivery",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       orderController.updateOrderAfterDelivery
     );
     this.router.patch(
       "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       validator(validatorSchema.update, "body"),
       orderController.updateOrder
     );
     this.router.delete(
       "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       orderController.deleteOrder
     );
   }

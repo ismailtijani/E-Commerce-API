@@ -3,6 +3,7 @@ import productController from "../../controllers/product";
 import Authentication from "../../middlewares/auth";
 import validatorSchema from "../../modules/products/validator";
 import validator from "../../middlewares/validator";
+import validateId from "../../utils/validID";
 
 class ProductRoutes {
   public router: Router;
@@ -38,18 +39,21 @@ class ProductRoutes {
     );
     this.router.get(
       "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       productController.getProductById
     );
     this.router.patch(
       "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       validator(validatorSchema.update, "body"),
       productController.updateProduct
     );
     this.router.delete(
       "/:_id",
-      validator(validatorSchema.verifyParamsId, "params"),
+      validateId,
+      // validator(validatorSchema.verifyParamsId, "params"),
       productController.deleteProduct
     );
   }
