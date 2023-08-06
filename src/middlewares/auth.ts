@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
+import forge from "node-forge";
 import User from "../modules/users/schema";
 import RedisCache from "../config/redisCache";
-import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
+import { ACCESS_TOKEN, AUTH_PREFIX, AUTH_KEYS } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
 import { UserLevelEnum } from "../enums";
@@ -14,14 +15,13 @@ export default class Authentication {
     const accessToken = req.header("Authorization")?.replace("Bearer ", "");
 
     try {
-      if (!accessToken) throw new UnAuthenticatedError("Please Authenticate.");
+      if (!accessToken) throw new UnAuthenticatedError("Access denied.Please Authenticate.");
 
-      // Verify Token
-      const { _id } = <IPayload>jwt.verify(accessToken, JWT_SECRET);
-
-      //Check if token still lives
-      const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
-      if (!token) throw new BadRequestError("Invalid or expired token");
+      //Retrieve keys from database
+      const { privateKey } = await RedisCache.get(AUTH_KEYS);
+      // Verify Token (Decrypt with RSA using the private key)
+      const decryptor = forge.pki.privateKeyFromPem(privateKey);
+      const _id = decryptor.decrypt(accessToken, "RSAES-PKCS1-V1_5");
 
       // Get user from database
       const user = await User.findById({ _id });
@@ -42,13 +42,23 @@ export default class Authentication {
 
   static async generateAuthToken(_id: string, next: NextFunction) {
     try {
-      const token = jwt.sign({ _id }, JWT_SECRET, {
-        expiresIn: process.env.TOKEN_VALIDATION_DURATION,
-      });
-      //Time to live
-      const ttl = 7 * 24 * 60 * 60;
-      await RedisCache.set(ACCESS_TOKEN + _id, { token }, ttl);
-      return token;
+      // Generate a 2048-bit RSA key pair
+      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+
+      // Convert the keys to PEM format (string)
+      const privateKey: string = forge.pki.privateKeyToPem(keyPair.privateKey);
+      const publicKey: string = forge.pki.publicKeyToPem(keyPair.publicKey);
+      //Store the keys in Redis
+      await RedisCache.set(AUTH_KEYS, { privateKey, publicKey });
+      // Encrypt with RSA using the public key
+      const encryptor = forge.pki.publicKeyFromPem(publicKey);
+      const encryptedData = encryptor.encrypt(_id, "RSAES-PKCS1-V1_5", publicKey);
+
+      return encryptedData;
+      // const token = jwt.sign({ _id }, JWT_SECRET, {
+      //   algorithm: "HS256",
+      //   expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+      // });
     } catch (error) {
       next(error);
     }
@@ -109,8 +119,8 @@ export default class Authentication {
 }
 
 // Fectching JsonwebToken secret
-const JWT_SECRET = process.env.JWT_SECRET as string;
+// const JWT_SECRET = process.env.JWT_SECRET as string;
 
-interface IPayload {
-  _id: string;
-}
+// interface IPayload {
+//   _id: string;
+// }

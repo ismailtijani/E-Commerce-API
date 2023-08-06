@@ -87,15 +87,41 @@ export default class Controller {
           totalSales: { $sum: "$totalPrice" },
         },
       },
+      {
+        $project: {
+          _id: 0, // Exclude the _id field from the output
+          totalOrders: 1,
+          totalSales: 1,
+        },
+      },
     ]);
 
     //Fetch total number of registered users
     const users = await User.aggregate([
       {
-        $group: {
-          _id: null,
-          totalUser: { $sum: 1 },
+        $facet: {
+          counts: [
+            { $group: { _id: null, totalUser: { $sum: 1 } } },
+            {
+              $project: {
+                _id: 0,
+                totalUser: 1,
+                activeUsers: {
+                  $sum: { $cond: [{ $eq: ["$status", "activated"] }, 1, 0] },
+                },
+                pendingAccounts: {
+                  $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+                },
+              },
+            },
+          ],
         },
+      },
+      {
+        $unwind: "$counts",
+      },
+      {
+        $replaceWith: "$counts",
       },
     ]);
 
@@ -108,7 +134,16 @@ export default class Controller {
           totalSales: { $sum: "$totalPrice" },
         },
       },
+      {
+        $project: {
+          date: "$_id", // Include the _id field as "date"
+          orders: 1,
+          totalSales: 1,
+          _id: 0, // Exclude the _id field from the output
+        },
+      },
     ]);
+
     //Fetch total number of products in each category
     const productCategories = await Product.aggregate([
       {
