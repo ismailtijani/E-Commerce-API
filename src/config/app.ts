@@ -2,6 +2,7 @@ import express, { Request, Response, Application, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
 import mongoose from "mongoose";
+import forge from "node-forge";
 import Logger from "../utils/logger";
 import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
@@ -15,6 +16,7 @@ import V1PaymentRouter from "../v1/routes/paystack";
 
 class App {
   public app: Application;
+
   public mongoUrl =
     process.env.NODE_ENV === "development"
       ? `mongodb://127.0.0.1/${Environment.getDbName()}`

@@ -6,6 +6,6 @@ export const AUTH_PREFIX = "2FAC?";
 export const LOGIN_TOKEN = "LOGIN";
 export const ACCESS_TOKEN = "Access Token";
 export const ADMIN = "Admin";
-export const AUTH_KEYS = "Authentication Keys";
+export const RSA_KEYS = "Authentication Keys";
 export const TOP_PRODUCT = "Top Products";
 export const RESET_PASSWORD = "resetPassword?";

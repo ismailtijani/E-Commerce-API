@@ -8,6 +8,7 @@ import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
 import { UserLevelEnum } from "../enums";
 import { statusCodes } from "../utils/interfaces";
+import Logger from "../utils/logger";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -40,7 +41,7 @@ export default class Authentication {
     }
   }
 
-  static async generateAuthToken(_id: string, next: NextFunction) {
+  static async generateKeyPair(_id: string, next: NextFunction) {
     try {
       // Generate a 2048-bit RSA key pair
       const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
@@ -51,10 +52,11 @@ export default class Authentication {
       //Store the keys in Redis
       await RedisCache.set(AUTH_KEYS, { privateKey, publicKey });
       // Encrypt with RSA using the public key
-      const encryptor = forge.pki.publicKeyFromPem(publicKey);
-      const encryptedData = encryptor.encrypt(_id, "RSAES-PKCS1-V1_5", publicKey);
+      // const encryptor = forge.pki.publicKeyFromPem(publicKey);
+      // const algorithm = process.env.ALGORITHM;
+      // const encryptedData = encryptor.encrypt(_id, "RSAES-PKCS1-V1_5", publicKey);
 
-      return encryptedData;
+      return { privateKey, publicKey };
       // const token = jwt.sign({ _id }, JWT_SECRET, {
       //   algorithm: "HS256",
       //   expiresIn: process.env.TOKEN_VALIDATION_DURATION,
@@ -84,10 +86,10 @@ export default class Authentication {
       // Fetch user data
       const user = await User.findById(_id);
       // Generate AuthToken
-      const token = await this.generateAuthToken(_id, next);
+      // const token = await this.generateAuthToken(_id, next);
       //Add user and token to request
       if (user) req.user = user;
-      req.token = token;
+      // req.token = token;
       next();
     } catch (error) {
       next(error);
