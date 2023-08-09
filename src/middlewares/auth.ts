@@ -2,13 +2,15 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 import forge from "node-forge";
 import User from "../modules/users/schema";
+import { keyPair } from "../config/app";
 import RedisCache from "../config/redisCache";
-import { ACCESS_TOKEN, AUTH_PREFIX, AUTH_KEYS } from "../constant";
+import { ACCESS_TOKEN, AUTH_PREFIX, RSA_KEYS } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
 import { UserLevelEnum } from "../enums";
 import { statusCodes } from "../utils/interfaces";
 import Logger from "../utils/logger";
+import NotFoundError from "../utils/errors/notFound";
 
 export default class Authentication {
   static async middleware(req: Request, res: Response, next: NextFunction) {
@@ -19,11 +21,10 @@ export default class Authentication {
       if (!accessToken) throw new UnAuthenticatedError("Access denied.Please Authenticate.");
 
       //Retrieve keys from database
-      const { privateKey } = await RedisCache.get(AUTH_KEYS);
+      const { privateKey } = await RedisCache.get(RSA_KEYS);
       // Verify Token (Decrypt with RSA using the private key)
-      const decryptor = forge.pki.privateKeyFromPem(privateKey);
-      const _id = decryptor.decrypt(accessToken, "RSAES-PKCS1-V1_5");
-
+      const data = keyPair.decrypt(accessToken);
+      const _id = keyPair.verifySignature(data, "h");
       // Get user from database
       const user = await User.findById({ _id });
       if (!user) throw new BadRequestError("Please Authenticate");
@@ -41,30 +42,30 @@ export default class Authentication {
     }
   }
 
-  static async generateKeyPair(_id: string, next: NextFunction) {
-    try {
-      // Generate a 2048-bit RSA key pair
-      const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
+  // static async generateKeyPair(_id: string, next: NextFunction) {
+  //   try {
+  //     // Generate a 2048-bit RSA key pair
+  //     const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
 
-      // Convert the keys to PEM format (string)
-      const privateKey: string = forge.pki.privateKeyToPem(keyPair.privateKey);
-      const publicKey: string = forge.pki.publicKeyToPem(keyPair.publicKey);
-      //Store the keys in Redis
-      await RedisCache.set(AUTH_KEYS, { privateKey, publicKey });
-      // Encrypt with RSA using the public key
-      // const encryptor = forge.pki.publicKeyFromPem(publicKey);
-      // const algorithm = process.env.ALGORITHM;
-      // const encryptedData = encryptor.encrypt(_id, "RSAES-PKCS1-V1_5", publicKey);
+  //     // Convert the keys to PEM format (string)
+  //     const privateKey: string = forge.pki.privateKeyToPem(keyPair.privateKey);
+  //     const publicKey: string = forge.pki.publicKeyToPem(keyPair.publicKey);
+  //     //Store the keys in Redis
+  //     await RedisCache.set(AUTH_KEYS, { privateKey, publicKey });
+  //     // Encrypt with RSA using the public key
+  //     // const encryptor = forge.pki.publicKeyFromPem(publicKey);
+  //     // const algorithm = process.env.ALGORITHM;
+  //     // const encryptedData = encryptor.encrypt(_id, "RSAES-PKCS1-V1_5", publicKey);
 
-      return { privateKey, publicKey };
-      // const token = jwt.sign({ _id }, JWT_SECRET, {
-      //   algorithm: "HS256",
-      //   expiresIn: process.env.TOKEN_VALIDATION_DURATION,
-      // });
-    } catch (error) {
-      next(error);
-    }
-  }
+  //     return { privateKey, publicKey };
+  //     // const token = jwt.sign({ _id }, JWT_SECRET, {
+  //     //   algorithm: "HS256",
+  //     //   expiresIn: process.env.TOKEN_VALIDATION_DURATION,
+  //     // });
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // }
 
   static generateConfirmationCode() {
     const confirmationCode = Math.floor(Math.random() * (999999 - 100000) + 100000).toString();
@@ -83,13 +84,16 @@ export default class Authentication {
       if (authToken !== confirmationCode) throw new BadRequestError("Invalid code");
       //Delete Confirmation code
       await RedisCache.del(AUTH_PREFIX + _id);
+
       // Fetch user data
       const user = await User.findById(_id);
+      if (!user) throw new NotFoundError("User not found");
       // Generate AuthToken
-      // const token = await this.generateAuthToken(_id, next);
+      const encryptedData = keyPair.encrypt(_id);
+      const signedData = keyPair.sign(encryptedData);
       //Add user and token to request
-      if (user) req.user = user;
-      // req.token = token;
+      req.user = user;
+      req.token = signedData;
       next();
     } catch (error) {
       next(error);
