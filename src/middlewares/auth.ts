@@ -2,11 +2,10 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../modules/users/schema";
 import { keyPair } from "../config/app";
 import RedisCache from "../config/redisCache";
-import { ACCESS_TOKEN, AUTH_PREFIX, RSA_KEYS } from "../constant";
+import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
 import { UserLevelEnum } from "../enums";
-import Logger from "../utils/logger";
 import NotFoundError from "../utils/errors/notFound";
 
 export default class Authentication {
