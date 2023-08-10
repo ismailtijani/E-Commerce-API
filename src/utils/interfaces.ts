@@ -1,15 +1,16 @@
 import { UserDocument } from "../modules/users/interface";
 
+export type Info = string | object;
+type Token = { token: string; signature: string };
+
 declare global {
   namespace Express {
     interface Request {
       user: UserDocument;
-      token?: string;
+      token?: Token;
     }
   }
 }
-
-export type Info = string | object;
 
 export interface AppErrorArgs {
   name?: string;
