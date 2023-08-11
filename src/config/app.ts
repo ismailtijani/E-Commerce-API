@@ -4,6 +4,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import RSAKeyPair from "../middlewares/rsa";
 import Logger from "../utils/logger";
+import { env } from "node:process";
 import Environment from "../environments";
 import errorHandler from "../middlewares/errorHandler";
 import v1AuthRouter from "../v1/routes/auth";
@@ -19,9 +20,9 @@ class App {
   public keyPair: RSAKeyPair;
 
   public mongoUrl =
-    process.env.NODE_ENV === "development"
+    env.NODE_ENV === "development"
       ? `mongodb://127.0.0.1/${Environment.getDbName()}`
-      : (process.env.MONGODB_URL as string);
+      : (env.MONGODB_URL as string);
 
   constructor() {
     this.app = express();
@@ -72,7 +73,7 @@ class App {
   }
 }
 
-export const PORT = process.env.PORT || Environment.getPort();
+export const PORT = env.PORT || Environment.getPort();
 export const ClientBaseUrl = "http://localhost:3000";
 // process.env.NODE_ENV !== "development"
 //   ? (process.env.PROD_URL as string)
