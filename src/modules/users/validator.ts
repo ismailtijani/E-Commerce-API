@@ -44,11 +44,7 @@ const userValidatorSchema = {
       "string.base": "Email must be a string",
       "any.required": "Email is required",
     }),
-    password: Joi.string().min(8).regex(strongPasswordRegex).required().label("Password").messages({
-      "string.min": "Must have at least 8 characters",
-      "object.regex": "Must have at least 8 characters",
-      "string.pattern.base": stringPassswordError,
-    }),
+    password: Joi.string().required(),
   }),
 
   confirmAccount: Joi.object().keys({

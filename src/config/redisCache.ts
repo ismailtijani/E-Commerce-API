@@ -26,13 +26,13 @@ class RedisCache {
   }
 
   private RedisServerConnection = async () => {
-    this.client.on("error", (error) => {
-      Logger.error(`Redis Client Error(${error.name}: ${error.message})`);
-    });
     this.client.connect();
     this.client.on("connect", () => {
       Logger.info("Redis connection successful");
       this.isClientReady = true;
+    });
+    this.client.on("error", (error) => {
+      return Logger.error(`Redis Client Error: ${error.message}`);
     });
   };
 
@@ -44,7 +44,7 @@ class RedisCache {
     return false;
   }
 
-  public async get<T>(key: string) {
+  public async get(key: string) {
     if (this.isClientReady) {
       const data = await this.client.get(key);
       if (data) return JSON.parse(data);

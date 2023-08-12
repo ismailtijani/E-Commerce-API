@@ -74,7 +74,7 @@ export default class Controller {
 
       //Generate 2FA code
       const confirmationCode = Authentication.generateConfirmationCode();
-      const codeExpiration = 15 * 60;
+      const codeExpiration = 10 * 60;
       //   Store code in redis
       await RedisCache.set(AUTH_PREFIX + _id, { confirmationCode }, codeExpiration);
       //Send 2FAuth code to user
@@ -84,7 +84,7 @@ export default class Controller {
         email,
       });
 
-      responseHelper.successResponse(res, `2Factor Code sent to ${email} `, { _id });
+      responseHelper.successResponse(res, `Authentication Code sent to ${email} `, _id);
     } catch (error) {
       next(error);
     }
@@ -104,7 +104,6 @@ export default class Controller {
     try {
       //Delete the user token from redis
       await RedisCache.del(ACCESS_TOKEN + req.user._id);
-
       responseHelper.successResponse(res, "You have successfully logged out of this system");
     } catch (error) {
       next(error);

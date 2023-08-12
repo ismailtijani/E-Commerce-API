@@ -15,22 +15,32 @@ export default class Authentication {
 
     try {
       if (!token) throw new UnAuthenticatedError("Access denied.Please Authenticate.");
-      // Split token into encryptedData and signature
-      const [encryptedData, signature] = token.split(",");
 
-      // Verify Token (Decrypt with RSA using the private key)
-      const isVerified = keyPair.verifySignature(encryptedData, signature);
-      if (!isVerified) throw new BadRequestError("Please Authenticate");
+      // // Verify Token (Decrypt with RSA using the private key)
+      // const isVerified = keyPair.verifySignature(token, signature);
+      // if (!isVerified) throw new BadRequestError("Please Authenticate");
 
-      const _id = keyPair.decrypt(encryptedData);
+      const _id = keyPair.decrypt(token);
+
+      const isActive = await RedisCache.get(ACCESS_TOKEN + _id);
+      if (!isActive) throw new BadRequestError("Access denied.Please Authenticate.");
+
       // Get user from database
       const user = await User.findById({ _id });
       if (!user) throw new BadRequestError("Please Authenticate");
       // Add user to request
       req.user = user;
-      req.token = { token, signature };
+      req.token = token;
       next();
-    } catch (error) {
+    } catch (error: any) {
+      if (
+        error.message === "Encrypted message length is invalid." ||
+        error.message === "Invalid RSAES-OAEP padding." ||
+        error.message === "Encrypted message is invalid."
+      )
+        return res
+          .status(400)
+          .json({ STATUS: "FAILURE", MESSAGE: "Access denied.Please Authenticate." });
       next(error);
     }
   }
@@ -58,12 +68,12 @@ export default class Authentication {
       if (!user) throw new NotFoundError("User not found");
       // Generate AuthToken
       const token = keyPair.encrypt(_id);
-      const signature = keyPair.sign(token);
+      // const signature = keyPair.sign(token);
       //Save token to Redis
-      await RedisCache.set(ACCESS_TOKEN + _id, token, 7 * 24 * 60 * 60);
+      await RedisCache.set(ACCESS_TOKEN + _id, { token }, 24 * 60 * 60);
       //Add user and token to request
       req.user = user;
-      req.token = { token, signature };
+      req.token = token;
       next();
     } catch (error) {
       next(error);

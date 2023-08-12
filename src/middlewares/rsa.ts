@@ -16,10 +16,13 @@ export default class RSAKeyPair {
   }
 
   public encrypt(data: string) {
-    return this.publicKey.encrypt(data, "RSA-OAEP");
+    const encryptedData = this.publicKey.encrypt(data, "RSA-OAEP");
+    return forge.util.encode64(encryptedData); // Convert encrypted data to Base64 for transmission
   }
 
-  public decrypt(encryptedData: string) {
+  public decrypt(encryptedDataBase64: string) {
+    // Decode the Base64-encoded encrypted data
+    const encryptedData = forge.util.decode64(encryptedDataBase64);
     return this.privateKey.decrypt(encryptedData, "RSA-OAEP");
   }
 
