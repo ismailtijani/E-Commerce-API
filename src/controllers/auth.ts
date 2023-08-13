@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import RedisCache from "../config/redisCache";
 import MailService from "../mailer/service";
 import { AccountStatusEnum } from "../enums";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
@@ -9,6 +8,7 @@ import { IUser } from "../modules/users/interface";
 import { RequestHandler } from "express";
 import { responseHelper } from "../utils/responseHelper";
 import BadRequestError from "../utils/errors/badRequest";
+import redisCache from "../config/redisCache";
 
 export default class Controller {
   static signup: RequestHandler = async (req, res, next) => {
@@ -69,14 +69,15 @@ export default class Controller {
       const user = await User.findByCredentials(email, password);
       const { _id, firstName } = user;
       // check if the last login session still lives
-      const { token } = await RedisCache.get(ACCESS_TOKEN + _id);
-      if (token) return responseHelper.successResponse(res, "You have successfully login", user);
+      const { token } = await redisCache.get(ACCESS_TOKEN + _id);
+      if (token)
+        return responseHelper.successResponse(res, "You have successfully login", { user, token });
 
       //Generate 2FA code
       const confirmationCode = Authentication.generateConfirmationCode();
       const codeExpiration = 10 * 60;
       //   Store code in redis
-      await RedisCache.set(AUTH_PREFIX + _id, { confirmationCode }, codeExpiration);
+      await redisCache.set(AUTH_PREFIX + _id, { confirmationCode }, codeExpiration);
       //Send 2FAuth code to user
       MailService.send2FAAuthCode({
         name: firstName,
@@ -103,7 +104,7 @@ export default class Controller {
   static logout: RequestHandler = async (req, res, next) => {
     try {
       //Delete the user token from redis
-      await RedisCache.del(ACCESS_TOKEN + req.user._id);
+      await redisCache.del(ACCESS_TOKEN + req.user._id);
       responseHelper.successResponse(res, "You have successfully logged out of this system");
     } catch (error) {
       next(error);

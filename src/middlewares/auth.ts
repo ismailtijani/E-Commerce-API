@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import User from "../modules/users/schema";
-import { keyPair } from "../config/app";
-import RedisCache from "../config/redisCache";
+import keyPair from "../middlewares/rsa";
+import redisCache from "../config/redisCache";
 import { ACCESS_TOKEN, AUTH_PREFIX } from "../constant";
 import UnAuthenticatedError from "../utils/errors/unauthenticated";
 import BadRequestError from "../utils/errors/badRequest";
@@ -22,7 +22,8 @@ export default class Authentication {
 
       const _id = keyPair.decrypt(token);
 
-      const isActive = await RedisCache.get(ACCESS_TOKEN + _id);
+      const isActive = await redisCache.get(ACCESS_TOKEN + _id);
+
       if (!isActive) throw new BadRequestError("Access denied.Please Authenticate.");
 
       // Get user from database
@@ -56,12 +57,12 @@ export default class Authentication {
 
     try {
       //Fetch and Validate 2FAuth token
-      const { confirmationCode } = await RedisCache.get(AUTH_PREFIX + _id);
+      const { confirmationCode } = await redisCache.get(AUTH_PREFIX + _id);
       if (!confirmationCode) throw new BadRequestError("Auth Code expired or does not exist");
 
       if (authToken !== confirmationCode) throw new BadRequestError("Invalid code");
       //Delete Confirmation code
-      await RedisCache.del(AUTH_PREFIX + _id);
+      await redisCache.del(AUTH_PREFIX + _id);
 
       // Fetch user data
       const user = await User.findById(_id);
@@ -70,7 +71,7 @@ export default class Authentication {
       const token = keyPair.encrypt(_id);
       // const signature = keyPair.sign(token);
       //Save token to Redis
-      await RedisCache.set(ACCESS_TOKEN + _id, { token }, 24 * 60 * 60);
+      await redisCache.set(ACCESS_TOKEN + _id, { token }, 24 * 60 * 60);
       //Add user and token to request
       req.user = user;
       req.token = token;

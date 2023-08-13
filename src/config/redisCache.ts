@@ -20,16 +20,17 @@ class RedisCache {
   constructor(private ttl: number) {
     this.client = createClient(this.redisClientOptions);
     this.isClientReady = false;
-
     //Connect to Redis Server
     this.RedisServerConnection();
   }
 
-  private RedisServerConnection = async () => {
+  private RedisServerConnection = () => {
     this.client.connect();
     this.client.on("connect", () => {
       Logger.info("Redis connection successful");
       this.isClientReady = true;
+      // Clear Redis data on starting the server
+      this.flush();
     });
     this.client.on("error", (error) => {
       return Logger.error(`Redis Client Error: ${error.message}`);

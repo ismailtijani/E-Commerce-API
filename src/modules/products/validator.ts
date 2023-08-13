@@ -25,7 +25,7 @@ const validatorSchema = {
     category: Joi.string()
       .trim()
       .lowercase()
-      .valid("food", "electronic", "clothing", "furniture", "others")
+      .valid("food", "electronics", "clothing", "furniture", "others")
       .messages({
         "any.only":
           "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
@@ -52,16 +52,23 @@ const validatorSchema = {
     }),
   }),
 
-  search: Joi.object().keys({
-    name: Joi.string().messages({
-      "string.empty": "Product name cannot be an empty",
-      "string.base": "Product name must be a string",
+  search: Joi.object()
+    .keys({
+      name: Joi.string().messages({
+        "string.empty": "Product name cannot be an empty",
+        "string.base": "Product name must be a string",
+      }),
+      category: Joi.string()
+        .valid("food", "electronic", "clothing", "furniture", "others")
+        .messages({
+          "any.only":
+            "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
+        }),
+    })
+    .or("name", "category") // Ensures that either "name" or "category" must be provided
+    .messages({
+      "object.missing": "Either product name or category must be provided",
     }),
-    category: Joi.string().valid("food", "electronic", "clothing", "furniture", "others").messages({
-      "any.only":
-        "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
-    }),
-  }),
 
   searchForTopProducts: Joi.object().keys({
     sortField: Joi.string()

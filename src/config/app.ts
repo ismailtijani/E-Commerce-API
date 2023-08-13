@@ -2,7 +2,6 @@ import express, { Request, Response, Application, NextFunction } from "express";
 import cors from "cors";
 import "dotenv/config";
 import mongoose from "mongoose";
-import RSAKeyPair from "../middlewares/rsa";
 import Logger from "../utils/logger";
 import { env } from "node:process";
 import Environment from "../environments";
@@ -17,8 +16,6 @@ import V1PaymentRouter from "../v1/routes/paystack";
 
 class App {
   public app: Application;
-  public keyPair: RSAKeyPair;
-
   public mongoUrl =
     env.NODE_ENV === "development"
       ? `mongodb://127.0.0.1/${Environment.getDbName()}`
@@ -28,10 +25,9 @@ class App {
     this.app = express();
     this.mongoSetup();
     this.config();
-    this.keyPair = new RSAKeyPair();
   }
 
-  private config() {
+  private async config() {
     this.app.use(
       cors({
         origin: ClientBaseUrl,
@@ -79,4 +75,4 @@ export const ClientBaseUrl = "http://localhost:3000";
 //   ? (process.env.PROD_URL as string)
 //   : "http://localhost:3000";
 
-export const { app, keyPair } = new App();
+export default new App().app;

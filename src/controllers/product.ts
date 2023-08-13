@@ -5,8 +5,8 @@ import BadRequestError from "../utils/errors/badRequest";
 import { Sort } from "../modules/products/interface";
 import NotFoundError from "../utils/errors/notFound";
 import Order from "../modules/order/schema";
-import redisCache from "../config/redisCache";
 import { TOP_PRODUCT } from "../constant";
+import redisCache from "../config/redisCache";
 
 export default class Controller {
   // create a new product by registered user
@@ -133,7 +133,7 @@ export default class Controller {
         },
       ]);
 
-      if (!products) throw new BadRequestError("Products not found");
+      if (!products || products.length === 0) throw new BadRequestError("No Product found");
       responseHelper.successResponse(res, "Products fetched successfully", products);
     } catch (error) {
       next(error);

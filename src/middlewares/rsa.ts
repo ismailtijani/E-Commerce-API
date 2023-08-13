@@ -1,8 +1,6 @@
 import forge from "node-forge";
-import RedisCache from "../config/redisCache";
-import { RSA_KEYS } from "../constant";
 
-export default class RSAKeyPair {
+class RSAKeyPair {
   private privateKey: forge.pki.rsa.PrivateKey;
   private publicKey: forge.pki.rsa.PublicKey;
 
@@ -10,11 +8,19 @@ export default class RSAKeyPair {
     const keyPair = forge.pki.rsa.generateKeyPair({ bits: 2048 });
     this.privateKey = keyPair.privateKey;
     this.publicKey = keyPair.publicKey;
-    RedisCache.set(RSA_KEYS, { privateKey: this.privateKey, publicKey: this.publicKey });
-    // this.privateKey = forge.pki.privateKeyFromPem(privateKeyPem);
-    // this.publicKey = forge.pki.publicKeyFromPem(publicKeyPem);
   }
 
+  // private async keysStorage() {
+  //   const keys = await Key.create({
+  //     privateKey: this.privateKey.toString(),
+  //     publicKey: this.publicKey.toString(),
+  //   });
+  //   console.log(keys);
+  //   // const a = await redisCache.set(RSA_KEYS, {
+  //   //   privateKey: this.privateKey,
+  //   //   publicKey: this.publicKey,
+  //   // });
+  // }
   public encrypt(data: string) {
     const encryptedData = this.publicKey.encrypt(data, "RSA-OAEP");
     return forge.util.encode64(encryptedData); // Convert encrypted data to Base64 for transmission
@@ -40,3 +46,5 @@ export default class RSAKeyPair {
     return this.publicKey.verify(md.digest().bytes(), signatureBytes);
   }
 }
+
+export default new RSAKeyPair();
