@@ -108,7 +108,7 @@ export default class Controller {
     try {
       const results = await redisCache.get(TOP_PRODUCT);
       if (results)
-        responseHelper.successResponse(res, "Top products fecthed successfully", results);
+        return responseHelper.successResponse(res, "Top products fecthed successfully", results);
       const products = await Product.aggregate(pipeline);
       if (products.length === 0) throw new NotFoundError("No product found");
       await redisCache.set(TOP_PRODUCT, products, 24 * 60 * 60);

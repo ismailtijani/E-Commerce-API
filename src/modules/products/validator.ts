@@ -28,7 +28,7 @@ const validatorSchema = {
       .valid("food", "electronics", "clothing", "furniture", "others")
       .messages({
         "any.only":
-          "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
+          "Category must be one of 'Food','Electronics', 'Clothing', 'Furniture, and 'Others'",
       }),
     availableQuantity: Joi.number().required().messages({
       "number.empty": "Product count cannot be an empty",
@@ -59,10 +59,10 @@ const validatorSchema = {
         "string.base": "Product name must be a string",
       }),
       category: Joi.string()
-        .valid("food", "electronic", "clothing", "furniture", "others")
+        .valid("food", "electronics", "clothing", "furniture", "others")
         .messages({
           "any.only":
-            "Category must be one of 'Food','Electronic', 'Clothing', 'Furniture, and 'Others'",
+            "Category must be one of 'Food','Electronics', 'Clothing', 'Furniture, and 'Others'",
         }),
     })
     .or("name", "category") // Ensures that either "name" or "category" must be provided
@@ -97,10 +97,15 @@ const validatorSchema = {
       "string.empty": "Product image url cannot be an empty",
       "string.base": "Image Url must be a string",
     }),
-    category: Joi.string().messages({
-      "string.empty": "Category cannot be an empty",
-      "string.base": "Category must be a string",
-    }),
+    category: Joi.string()
+      .valid("food", "electronics", "clothing", "furniture", "others")
+      .messages({
+        "string.empty": "Category cannot be an empty",
+        "string.base": "Category must be a string",
+        "any.only":
+          "Category must be one of 'Food','Electronics', 'Clothing', 'Furniture, and 'Others'",
+      }),
+
     availableQuantity: Joi.number().messages({
       "number.empty": "Product count cannot be an empty",
       "number.base": "Count in stock must be a string",
