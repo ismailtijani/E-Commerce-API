@@ -29,25 +29,31 @@ export default class Controller {
   };
 
   static addCart: RequestHandler = async (req, res, next) => {
-    const { productId, quantity } = req.body;
+    const { productId, quantity } = req.body as { productId: string; quantity: number };
 
     try {
       //Create a new cart or update an existing cart in a single operation
-      const cart = await Cart.findOneAndUpdate(
-        { user: req.user._id },
-        { $push: { products: { $each: [{ productId, quantity }], $position: 0 } } },
-        { upsert: true, new: true }
-      );
+      const filter = { user: req.user._id, "products.productId": productId };
+      const update = {
+        $set: { "products.$.quantity": quantity },
+        $setOnInsert: { user: req.user._id },
+        $push: { products: { $each: [], $position: 0 } },
+      };
 
-      if (!cart) {
+      const cart = await Cart.findOneAndUpdate(filter, update, {
+        upsert: true,
+        new: true,
+        lean: true,
+      });
+
+      if (!cart.products.length || !cart) {
         throw new BadRequestError("Failed to update cart");
       }
 
-      const newCart = cart.toObject();
       return responseHelper.successResponse(
         res,
-        `Cart ${newCart.products.length > 1 ? "updated" : "created"} successfully`,
-        newCart
+        `Cart ${cart.products.length > 1 ? "updated" : "created"} successfully`,
+        cart
       );
     } catch (error) {
       next(error);
@@ -65,31 +71,31 @@ export default class Controller {
     }
   };
 
-  static updateCart: RequestHandler = async (req, res, next) => {
-    const { productId, quantity } = req.body as { productId: string; quantity: number };
-    const cartId = req.params._id;
-    try {
-      // Find the cart and update the quantity directly in the database
-      const updatedCart = await Cart.findOneAndUpdate(
-        {
-          _id: cartId,
-          "products.productId": productId,
-        },
-        { $set: { "products.$.quantity": quantity } },
-        { new: true, lean: true }
-      );
+  // static updateCart: RequestHandler = async (req, res, next) => {
+  //   const { productId, quantity } = req.body as { productId: string; quantity: number };
+  //   const cartId = req.params._id;
+  //   try {
+  //     // Find the cart and update the quantity directly in the database
+  //     const updatedCart = await Cart.findOneAndUpdate(
+  //       {
+  //         _id: cartId,
+  //         "products.productId": productId,
+  //       },
+  //       { $set: { "products.$.quantity": quantity } },
+  //       { new: true, lean: true }
+  //     );
 
-      if (!updatedCart) {
-        throw new BadRequestError(
-          `Product with the ID ${productId} is not available in your cart.`
-        );
-      }
+  //     if (!updatedCart) {
+  //       throw new BadRequestError(
+  //         `Product with the ID ${productId} is not available in your cart.`
+  //       );
+  //     }
 
-      return responseHelper.successResponse(res, "Item updated successfully", updatedCart);
-    } catch (error) {
-      next(error);
-    }
-  };
+  //     return responseHelper.successResponse(res, "Item updated successfully", updatedCart);
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
 
   static deleteCart: RequestHandler = async (req, res, next) => {
     try {
