@@ -14,15 +14,14 @@ export default class Controller {
         throw new BadRequestError("Product not found");
       }
       // check if the added quantity is greater than the available quantity
-      if (product.availableQuantity < req.body.quantity) {
+      else if (product.availableQuantity < req.body.quantity) {
         throw new BadRequestError(
           "Insufficient quantity, only " +
             product.availableQuantity +
             " items are available." +
             " For more items, please contact the seller."
         );
-      }
-      next();
+      } else next();
     } catch (error) {
       next(error);
     }
@@ -35,18 +34,14 @@ export default class Controller {
       //Create a new cart or update an existing cart in a single operation
       const filter = { user: req.user._id, "products.productId": productId };
       const update = {
-        $set: { "products.$.quantity": quantity },
         $setOnInsert: { user: req.user._id },
-        $push: { products: { $each: [], $position: 0 } },
+        $push: { products: { productId, quantity, $position: 0 } },
       };
+      const options = { upsert: true, new: true, lean: true };
 
-      const cart = await Cart.findOneAndUpdate(filter, update, {
-        upsert: true,
-        new: true,
-        lean: true,
-      });
+      const cart = await Cart.findOneAndUpdate(filter, update, options);
 
-      if (!cart.products.length || !cart) {
+      if (!cart) {
         throw new BadRequestError("Failed to update cart");
       }
 
