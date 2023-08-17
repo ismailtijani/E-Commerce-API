@@ -39,16 +39,28 @@ export default class Controller {
       };
       const options = { upsert: true, new: true, lean: true };
 
-      const cart = await Cart.findOneAndUpdate(filter, update, options);
+      const updatedCart = await Cart.findOneAndUpdate(filter, update, options);
 
-      if (!cart) {
+      if (!updatedCart) {
         throw new BadRequestError("Failed to update cart");
       }
 
+      const existingProductIndex = updatedCart.products.findIndex(
+        (product) => product.productId === productId
+      );
+
+      if (existingProductIndex === -1) {
+        updatedCart.products.unshift({ productId, quantity });
+      } else {
+        updatedCart.products[existingProductIndex].quantity = quantity;
+      }
+
+      await Cart.updateOne(filter, { products: updatedCart.products });
+
       return responseHelper.successResponse(
         res,
-        `Cart ${cart.products.length > 1 ? "updated" : "created"} successfully`,
-        cart
+        `Cart ${updatedCart.products.length > 1 ? "updated" : "created"} successfully`,
+        updatedCart
       );
     } catch (error) {
       next(error);
