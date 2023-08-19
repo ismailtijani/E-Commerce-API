@@ -37,25 +37,14 @@ class ProductRoutes {
       validator(validatorSchema.getProductByUser, "query"),
       productController.getProductsByUser
     );
-    this.router.get(
-      "/:_id",
-      validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
-      productController.getProductById
-    );
+    this.router.get("/:_id", validateId, productController.getProductById);
     this.router.patch(
       "/:_id",
       validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
       validator(validatorSchema.update, "body"),
       productController.updateProduct
     );
-    this.router.delete(
-      "/:_id",
-      validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
-      productController.deleteProduct
-    );
+    this.router.delete("/:_id", validateId, productController.deleteProduct);
   }
 }
 

@@ -4,7 +4,7 @@ export default interface ICart {
   user: Types.ObjectId;
   products: [
     {
-      productId: string;
+      productId: Types.ObjectId;
       quantity: number;
     }
   ];

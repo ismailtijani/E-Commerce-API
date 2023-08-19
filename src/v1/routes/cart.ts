@@ -22,14 +22,6 @@ class CartRoutes {
       cartController.addCart
     );
     this.router.get("/", cartController.viewCart);
-    // this.router.patch(
-    //   "/:_id",
-    //   validateId,
-    //   // validator(validatorSchema.verifyParamsId, "params"),
-    //   validator(validatorSchema.update, "body"),
-    //   cartController.checkIfProductExist,
-    //   cartController.updateCart
-    // );
     this.router.delete("/:_id", validateId, cartController.deleteCart);
   }
 }

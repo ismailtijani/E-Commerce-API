@@ -28,39 +28,31 @@ export default class Controller {
   };
 
   static addCart: RequestHandler = async (req, res, next) => {
-    const { productId, quantity } = req.body as { productId: string; quantity: number };
+    const { productId, quantity } = req.body;
 
     try {
       //Create a new cart or update an existing cart in a single operation
-      const filter = { user: req.user._id, "products.productId": productId };
-      const update = {
-        $setOnInsert: { user: req.user._id },
-        $push: { products: { productId, quantity, $position: 0 } },
-      };
-      const options = { upsert: true, new: true, lean: true };
+      let cart = await Cart.findOne({ user: req.user._id });
 
-      const updatedCart = await Cart.findOneAndUpdate(filter, update, options);
-
-      if (!updatedCart) {
-        throw new BadRequestError("Failed to update cart");
+      if (!cart) {
+        cart = new Cart({ user: req.user._id, products: [] });
       }
 
-      const existingProductIndex = updatedCart.products.findIndex(
-        (product) => product.productId === productId
+      const existingProductIndex = cart.products.findIndex(
+        (product) => product.productId.toString() === productId.toString()
       );
 
-      if (existingProductIndex === -1) {
-        updatedCart.products.unshift({ productId, quantity });
+      if (existingProductIndex !== -1) {
+        cart.products[existingProductIndex].quantity = quantity;
       } else {
-        updatedCart.products[existingProductIndex].quantity = quantity;
+        cart.products.push({ productId, quantity });
       }
 
-      await Cart.updateOne(filter, { products: updatedCart.products });
-
+      await cart.save(); // Save the updated cart
       return responseHelper.successResponse(
         res,
-        `Cart ${updatedCart.products.length > 1 ? "updated" : "created"} successfully`,
-        updatedCart
+        `Cart ${cart.products.length > 1 ? "updated" : "created"} successfully`,
+        cart
       );
     } catch (error) {
       next(error);
@@ -78,36 +70,26 @@ export default class Controller {
     }
   };
 
-  // static updateCart: RequestHandler = async (req, res, next) => {
-  //   const { productId, quantity } = req.body as { productId: string; quantity: number };
-  //   const cartId = req.params._id;
-  //   try {
-  //     // Find the cart and update the quantity directly in the database
-  //     const updatedCart = await Cart.findOneAndUpdate(
-  //       {
-  //         _id: cartId,
-  //         "products.productId": productId,
-  //       },
-  //       { $set: { "products.$.quantity": quantity } },
-  //       { new: true, lean: true }
-  //     );
-
-  //     if (!updatedCart) {
-  //       throw new BadRequestError(
-  //         `Product with the ID ${productId} is not available in your cart.`
-  //       );
-  //     }
-
-  //     return responseHelper.successResponse(res, "Item updated successfully", updatedCart);
-  //   } catch (error) {
-  //     next(error);
-  //   }
-  // };
-
   static deleteCart: RequestHandler = async (req, res, next) => {
     try {
-      const item = await Cart.findByIdAndDelete({ _id: req.params._id });
-      if (!item) throw new NotFoundError("Unable to delete item");
+      const cart = await Cart.findOne({ user: req.user._id });
+
+      if (!cart) {
+        throw new NotFoundError("Unable to delete item");
+      }
+
+      const removedProductIndex = cart.products.findIndex(
+        (product) => product.productId.toString() === req.params._id
+      );
+
+      if (removedProductIndex === -1) {
+        throw new BadRequestError("Product not found in your cart");
+      }
+
+      cart.products.splice(removedProductIndex, 1); // Remove the product from the array
+
+      await cart.save(); // Save the updated cart after product removal
+
       return responseHelper.successResponse(res, "Item deleted from cart successfully");
     } catch (error) {
       next(error);

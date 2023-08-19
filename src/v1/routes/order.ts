@@ -21,37 +21,16 @@ class OrderRoutes {
       orderController.createOrder
     );
     this.router.get("/customer", orderController.getOrdersByUser);
-    this.router.get(
-      "/:_id",
-      validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
-      orderController.getOrderById
-    );
-    this.router.patch(
-      "/:_id/payment",
-      validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
-      orderController.updateOrderAfterPayment
-    );
-    this.router.patch(
-      "/:_id/delivery",
-      validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
-      orderController.updateOrderAfterDelivery
-    );
+    this.router.get("/:_id", validateId, orderController.getOrderById);
+    this.router.patch("/:_id/payment", validateId, orderController.updateOrderAfterPayment);
+    this.router.patch("/:_id/delivery", validateId, orderController.updateOrderAfterDelivery);
     this.router.patch(
       "/:_id",
       validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
       validator(validatorSchema.update, "body"),
       orderController.updateOrder
     );
-    this.router.delete(
-      "/:_id",
-      validateId,
-      // validator(validatorSchema.verifyParamsId, "params"),
-      orderController.deleteOrder
-    );
+    this.router.delete("/:_id", validateId, orderController.deleteOrder);
   }
 }
 
