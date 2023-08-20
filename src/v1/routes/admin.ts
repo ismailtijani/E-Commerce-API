@@ -8,6 +8,7 @@ class adminRoute {
     (this.router = Router()), this.registeredRoutes();
   }
   private registeredRoutes() {
+    this.router.use(Authentication.middleware);
     this.router.use(Authentication.isSuperAdmin);
     this.router.get("/summary", adminController.summary);
     this.router.get("/orders", adminController.getOrders);

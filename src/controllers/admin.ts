@@ -4,7 +4,6 @@ import User from "../modules/users/schema";
 import Product from "../modules/products/schema";
 import { responseHelper } from "../utils/responseHelper";
 import NotFoundError from "../utils/errors/notFound";
-// import { redisCache } from "../config/app";
 import { ADMIN } from "../constant";
 import redisCache from "../config/redisCache";
 
@@ -100,29 +99,24 @@ export default class Controller {
     //Fetch total number of registered users
     const users = await User.aggregate([
       {
-        $facet: {
-          counts: [
-            { $group: { _id: null, totalUser: { $sum: 1 } } },
-            {
-              $project: {
-                _id: 0,
-                totalUser: 1,
-                activeUsers: {
-                  $sum: { $cond: [{ $eq: ["$status", "activated"] }, 1, 0] },
-                },
-                pendingAccounts: {
-                  $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
-                },
-              },
-            },
-          ],
+        $group: {
+          _id: null,
+          totalUser: { $sum: 1 },
+          activeUsers: {
+            $sum: { $cond: [{ $eq: ["$status", "activated"] }, 1, 0] },
+          },
+          pendingAccounts: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+          },
         },
       },
       {
-        $unwind: "$counts",
-      },
-      {
-        $replaceWith: "$counts",
+        $project: {
+          _id: 0,
+          totalUser: 1,
+          activeUsers: 1,
+          pendingAccounts: 1,
+        },
       },
     ]);
 
@@ -130,27 +124,17 @@ export default class Controller {
     const dailyOrders = await Order.aggregate([
       {
         $group: {
-          _id: { $dateToString: { $format: "%Y-%m-%d", date: "$createdAt" } },
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
           orders: { $sum: 1 },
           totalSales: { $sum: "$totalPrice" },
         },
       },
       {
         $project: {
-          date: "$_id", // Include the _id field as "date"
+          date: "$_id",
           orders: 1,
           totalSales: 1,
-          _id: 0, // Exclude the _id field from the output
-        },
-      },
-    ]);
-
-    //Fetch total number of products in each category
-    const productCategories = await Product.aggregate([
-      {
-        $group: {
-          _id: "category",
-          count: { $sum: 1 },
+          _id: 0,
         },
       },
     ]);
@@ -159,7 +143,6 @@ export default class Controller {
       users,
       dailyOrders,
       orders: orders.length === 0 ? [{ totalOrders: 0, totalSales: 0 }] : orders,
-      productCategories,
     });
   };
 }

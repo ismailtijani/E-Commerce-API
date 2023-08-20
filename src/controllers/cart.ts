@@ -61,10 +61,9 @@ export default class Controller {
 
   static viewCart: RequestHandler = async (req, res, next) => {
     try {
-      await req.user?.populate({ path: "carts" });
-      const carts = req.user.carts;
-      if (!carts || carts.length === 0) throw new NotFoundError("Empty cart, do add some products");
-      return responseHelper.successResponse(res, "Cart fetched successfully", carts);
+      const cart = await Cart.findOne({ user: req.user._id });
+      if (!cart) throw new NotFoundError("Empty cart, do add some products");
+      return responseHelper.successResponse(res, "Cart fetched successfully", cart);
     } catch (error) {
       next(error);
     }

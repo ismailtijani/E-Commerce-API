@@ -15,15 +15,11 @@ export default class Controller {
     const { deliveryPrice, address, city, country } = req.body;
     try {
       // Get the cart of the user
-      await req.user.populate("carts");
-      const carts = req.user.carts;
-      if (!carts || carts.length === 0)
-        throw new NotFoundError("Cart is empty. Kindly add some products 😊");
+      const cart = await Cart.findOne({ user: req.user._id });
+      if (!cart) throw new NotFoundError("Cart is empty. Kindly add some products 😊");
 
-      // Fetch products from the database with availability and quantity checks
-      const productIds = carts.flatMap((cartItem) =>
-        cartItem.products.map((product) => product.productId)
-      );
+      const productIds = cart.products.map((product) => product.productId);
+
       Logger.info(productIds);
       const products = await Product.find({
         _id: { $in: productIds },
@@ -32,20 +28,18 @@ export default class Controller {
       Logger.warn(products);
       // Check product availability and quantity, and calculate total price
       let costTotal = 0;
-      for (const cartItem of carts) {
-        for (const product of cartItem.products) {
-          // Get the price of a product by its ID
-          const foundProduct = products.find(
-            (prd) => prd._id.toString() === product.productId.toString()
+      for (const product of cart.products) {
+        // Get the price of a product by its ID
+        const foundProduct = products.find(
+          (prd) => prd._id.toString() === product.productId.toString()
+        );
+        if (!foundProduct)
+          throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
+        if (foundProduct.availableQuantity < product.quantity)
+          throw new BadRequestError(
+            `Insufficient quantity for product with ID ${product.productId}.`
           );
-          if (!foundProduct)
-            throw new NotFoundError(`Product with ID ${product.productId} is out of stock.`);
-          if (foundProduct.availableQuantity < product.quantity)
-            throw new BadRequestError(
-              `Insufficient quantity for product with ID ${product.productId}.`
-            );
-          costTotal += foundProduct?.price * product.quantity;
-        }
+        costTotal += foundProduct?.price * product.quantity;
       }
       // create commission
       const commission = (costTotal * 0.05).toFixed(2);
@@ -55,7 +49,7 @@ export default class Controller {
       const paymentId = crypto.randomBytes(9).toString("hex");
       const order = await Order.create({
         userId: req.user._id,
-        products: carts.flatMap((cartItem) => cartItem.products),
+        products: cart.products.map((product) => product.productId),
         totalPrice,
         payment: { paymentId },
         shipping: {
@@ -74,9 +68,9 @@ export default class Controller {
   //Get all orders placed by a specific user
   static getOrdersByUser: RequestHandler = async (req, res, next) => {
     try {
-      const orders = await Order.find({ userId: req.user._id });
-      if (!orders || orders.length === 0) throw new NotFoundError("No Order found");
-      return responseHelper.successResponse(res, "Orders retrieved", orders);
+      const order = await Order.find({ userId: req.user._id });
+      if (!order) throw new NotFoundError("No Order found");
+      return responseHelper.successResponse(res, "Orders retrieved", order);
     } catch (error) {
       next(error);
     }
@@ -119,21 +113,17 @@ export default class Controller {
       order.payment.isPaid = true;
       order.payment.paidAt = new Date();
       await order.save();
-      //Track the number of times a product has been sold
-      // await req.user.populate("carts")
-      const carts = req.user.carts;
+      // Track the number of times a product has been sold
+      const cart = await Cart.findOne({ user: req.user._id });
       // if (!carts) throw new NotFoundError("Cart is empty, Kindly add some products😊")
-      const bulkOptions = carts?.flatMap((cartItem) =>
-        cartItem.products.map((product) => ({
-          updateOne: {
-            filter: { _id: product.productId },
-            update: {
-              $inc: { sales: +product.quantity, availableQuantity: -product.quantity }, //This will correctly decrement the availableQuantity as the sales field is increased
-            },
+      const bulkOptions = cart?.products.map((product) => ({
+        updateOne: {
+          filter: { _id: product.productId },
+          update: {
+            $inc: { sales: +product.quantity, availableQuantity: -product.quantity }, //This will correctly decrement the availableQuantity as the sales field is increased
           },
-        }))
-      );
-      console.log(bulkOptions);
+        },
+      }));
       //Update the product quantity
       const updated = await Product.bulkWrite(bulkOptions || []);
       console.log(updated);

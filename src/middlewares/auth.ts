@@ -98,7 +98,7 @@ export default class Authentication {
   static isSuperAdmin(req: Request, res: Response, next: NextFunction) {
     try {
       if (req.user.userLevel === UserLevelEnum.isSuperAdmin) next();
-      throw new BadRequestError("You are not allowed to perform this operation!");
+      else throw new BadRequestError("You are not allowed to perform this operation!");
     } catch (error) {
       next(error);
     }
