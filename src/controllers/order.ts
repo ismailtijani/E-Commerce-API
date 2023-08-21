@@ -20,12 +20,11 @@ export default class Controller {
 
       const productIds = cart.products.map((product) => product.productId);
 
-      Logger.info(productIds);
       const products = await Product.find({
         _id: { $in: productIds },
         availableQuantity: { $gte: 1 },
       });
-      Logger.warn(products);
+
       // Check product availability and quantity, and calculate total price
       let costTotal = 0;
       for (const product of cart.products) {

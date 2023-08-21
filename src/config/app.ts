@@ -70,9 +70,9 @@ class App {
 }
 
 export const PORT = env.PORT || Environment.getPort();
-export const ClientBaseUrl = "http://localhost:3000";
-// process.env.NODE_ENV !== "development"
-//   ? (process.env.PROD_URL as string)
-//   : "http://localhost:3000";
+export const ClientBaseUrl =
+  process.env.NODE_ENV !== "development"
+    ? (process.env.PROD_URL as string)
+    : "http://localhost:3000";
 
 export default new App().app;

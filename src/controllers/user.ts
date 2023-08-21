@@ -23,9 +23,7 @@ export default class Controller {
           location: req.file.location as string,
           key: req.file.key as string,
         });
-      }
-      // Internal Server Error(Change statuscode)
-      throw new BadRequestError("Failed to save user profile photo");
+      } else throw new BadRequestError("Failed to save user profile photo");
     } catch (error) {
       next(error);
     }

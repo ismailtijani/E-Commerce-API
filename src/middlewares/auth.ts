@@ -94,7 +94,7 @@ export default class Authentication {
       next(error);
     }
   }
-  /* access_level_verifier('admin') */
+  //  Access level verifier('Super admin')
   static isSuperAdmin(req: Request, res: Response, next: NextFunction) {
     try {
       if (req.user.userLevel === UserLevelEnum.isSuperAdmin) next();
