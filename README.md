@@ -90,7 +90,7 @@ POST ⇒ {{url}}/user/login
 ```js
 {
     "email": "user@mail.com",
-    "password": "adebare123"
+    "password": "example123"
 }
 
 ```
