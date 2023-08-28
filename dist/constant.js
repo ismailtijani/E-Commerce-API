@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RSA_KEYS = exports.ADMIN = exports.RESET_PASSWORD = exports.TOP_PRODUCT = exports.ACCESS_TOKEN = exports.LOGIN_TOKEN = exports.AUTH_PREFIX = exports.AUTH_CODE_SUBJECT = exports.PASSWORD_RESET_HELP = exports.ACCOUNT_SUCCESS_SUBJECT = exports.CONFIRM_ACCOUNT_SUBJECT = void 0;
+exports.CONFIRM_ACCOUNT_SUBJECT = "Account Confirmation";
+exports.ACCOUNT_SUCCESS_SUBJECT = "Account Creation Success";
+exports.PASSWORD_RESET_HELP = "Password Reset Help";
+exports.AUTH_CODE_SUBJECT = "Two-factor Authentication Code";
+exports.AUTH_PREFIX = "2FAC?";
+exports.LOGIN_TOKEN = "LOGIN";
+exports.ACCESS_TOKEN = "Access Token";
+exports.TOP_PRODUCT = "Top Products";
+exports.RESET_PASSWORD = "resetPassword?";
+exports.ADMIN = "Admin?";
+exports.RSA_KEYS = "Authentication Keys$";
