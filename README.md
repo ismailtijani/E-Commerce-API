@@ -63,10 +63,11 @@ If the issue persist, kindly contact `Ismail => @ ismailtijani10@yahoo.com`
 
 ```js
 {
-    "name": "SOT",
+    "firstName": "SOT",
+    "lastName": "Exmaple"
     "email": "user@mail.com"
     "phoneNumber": "08094706335",
-    "password": "adebare123"
+    "password": "example123"
 }
 ```
 
@@ -75,8 +76,7 @@ If the issue persist, kindly contact `Ismail => @ ismailtijani10@yahoo.com`
 ```js
 {
     "STATUS": "SUCCESS",
-    "MESSAGE": "Account created succesfully",
-    "DATA": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDNlNmQ0ZWY3MGRkNGM3ZDg0ZTViZTMiLCJpYXQiOjE2ODE4MTI4MTR9.VPpN6vbcFtEJ4v5J45sCuTY0Jt6HyOnPwSI06IFA_zA"
+    "MESSAGE": "Account created successfuly!",
 }
 ```
 
@@ -100,7 +100,8 @@ POST ⇒ {{url}}/user/login
 ```js
 {
     "STATUS": "SUCCESS",
-    "DATA": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NDNlNmQ0ZWY3MGRkNGM3ZDg0ZTViZTMiLCJpYXQiOjE2ODE4MTI4ODN9.MtKxkZW0P5jsfW50S6BqxOMFfMR_QMa-iIphUe3jClQ"
+    "MESSAGE": "Authentication Code sent to ismailtijani10@yahoo.com ",
+    "DATA": "64d7c362c3ab032d8aa1fa36"
 }
 ```
 
