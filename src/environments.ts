@@ -8,9 +8,6 @@ class Environment {
   constructor(private environment: string) {}
 
   getPort(): number {
-    if (this.environment === Environments.prod_environment) {
-      return 8081;
-    }
     if (this.environment === Environments.qa_environment) {
       return 8082;
     }
@@ -18,9 +15,6 @@ class Environment {
   }
 
   getDbName(): string {
-    if (this.environment === Environments.prod_environment) {
-      return "E_Commerce_Prod";
-    }
     if (this.environment === Environments.qa_environment) {
       return "E_Commerce_Qa";
     }
