@@ -6,7 +6,7 @@
 
 ##### Postman Documentation Link
 
-_[Postman Documentation](https://documenter.getpostman.com/view/25509517/2s93Y5NzX2)_
+_[Postman Documentation]()_
 
 ---
 
