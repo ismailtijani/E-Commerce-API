@@ -38,11 +38,11 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
 
-    // routes
     // set home route
     this.app.get("/", (req, res) => {
       res.status(200).json({ message: "Welcome to the E Commerce API" });
     });
+    // Other routes
     this.app.use("/api/v1/admin", v1adminRouter);
     this.app.use("/api/v1/accounts", v1AuthRouter);
     this.app.use("/api/v1/users", v1userRouter);
